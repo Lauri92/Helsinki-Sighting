@@ -11,10 +11,8 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiActivity
-import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
-import retrofit2.Response
-import android.graphics.Paint
 import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.bumptech.glide.Glide
 
 
@@ -51,15 +49,17 @@ class ActivitiesAdapter(
         val item = activitiesList[position]
         val nameTv = holder.itemView.findViewById<TextView>(R.id.name_tv)
         val localityTv = holder.itemView.findViewById<TextView>(R.id.locality_tv)
-        val thumbnail_iv = holder.itemView.findViewById<ImageView>(R.id.thumbnail_iv)
+        val thumbnailIv = holder.itemView.findViewById<ImageView>(R.id.thumbnail_iv)
 
         nameTv.text = item.name
         localityTv.text = item.locality
         if (item.images.isNotEmpty()) {
             Glide.with(context).load(item.images[0].url)
-                .placeholder(R.drawable.image_not_available)
+                .placeholder(R.drawable.loading_animation)
                 .error(R.drawable.image_not_available)
-                .into(thumbnail_iv)
+                .into(thumbnailIv)
+        } else {
+            thumbnailIv.setBackgroundResource(R.drawable.image_not_available)
         }
 
         holder.itemView.setOnClickListener {
@@ -73,10 +73,17 @@ class ActivitiesAdapter(
                 Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show()
             }
         }
+        holder.itemView.findViewById<ConstraintLayout>(R.id.activities_row_layout).foreground = null
     }
 
     override fun getItemCount(): Int {
         return activitiesList.size
+    }
+
+
+    //Prevent loading images into cells which don't have images, if going back and fort in the recyclerview
+    override fun getItemViewType(position: Int): Int {
+        return position
     }
 
     /**

@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/lauri/AndroidStudioProjects/HelsinkiApp/app/src/main/res/drawable/loading_animation.xml" value="0.14635416666666667" />
+        <entry key="..\:/Users/lauri/AndroidStudioProjects/HelsinkiApp/app/src/main/res/drawable/loading_img.xml" value="0.14635416666666667" />
         <entry key="..\:/Users/lauri/AndroidStudioProjects/HelsinkiApp/app/src/main/res/layout/activitiesrow_layout.xml" value="0.4" />
         <entry key="..\:/Users/lauri/AndroidStudioProjects/HelsinkiApp/app/src/main/res/layout/activity_main.xml" value="0.2546875" />
         <entry key="..\:/Users/lauri/AndroidStudioProjects/HelsinkiApp/app/src/main/res/layout/fragment_browse.xml" value="0.268" />
