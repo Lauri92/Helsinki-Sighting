@@ -6,6 +6,11 @@ plugins {
 android {
     compileSdk 31
 
+    buildFeatures {
+        dataBinding true
+        viewBinding true
+    }
+
     defaultConfig {
         applicationId "fi.lauriari.helsinkiapp"
         minSdk 27
@@ -30,7 +35,7 @@ android {
         jvmTarget = '1.8'
     }
 }
-
+apply plugin: "kotlin-kapt"
 dependencies {
 
     // Navigation
