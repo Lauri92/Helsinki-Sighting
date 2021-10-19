@@ -53,6 +53,8 @@ class BrowseFragment : Fragment() {
                             longitude = it.location.lon,
                             locality = it.location.address.locality,
                             description = it.description.body,
+                            images = it.description.images,
+                            tags = it.tags
                         )
                     )
                     accessBinding?.recyclerview?.adapter =

@@ -20,7 +20,5 @@ class HelsinkiApiViewModel(private val helsinkiApiRepository: HelsinkiApiReposit
             response.value = apiResponse
         }
     }
-    fun logNice() {
-        Log.d("nice", "nice")
-    }
+
 }

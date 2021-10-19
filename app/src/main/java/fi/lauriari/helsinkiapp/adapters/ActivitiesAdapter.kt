@@ -14,6 +14,8 @@ import fi.lauriari.helsinkiapp.classes.SingleHelsinkiActivity
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import retrofit2.Response
 import android.graphics.Paint
+import android.widget.ImageView
+import com.bumptech.glide.Glide
 
 
 class ActivitiesAdapter(
@@ -31,6 +33,8 @@ class ActivitiesAdapter(
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.activitiesrow_layout, parent, false)
 
+        Log.d("activitiesList", activitiesList.toString())
+
         activitiesList.forEach { activity ->
             activity.name = activity.name?.let { it -> decodeHtmlString(it) }
             activity.infoUrl = activity.infoUrl?.let { it -> decodeHtmlString(it) }
@@ -44,21 +48,31 @@ class ActivitiesAdapter(
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
 
+        val item = activitiesList[position]
         val nameTv = holder.itemView.findViewById<TextView>(R.id.name_tv)
+        val localityTv = holder.itemView.findViewById<TextView>(R.id.locality_tv)
+        val thumbnail_iv = holder.itemView.findViewById<ImageView>(R.id.thumbnail_iv)
 
-        nameTv.text = activitiesList[position].name
-        nameTv.paintFlags = nameTv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        holder.itemView.findViewById<TextView>(R.id.info_url_tv).text =
-            activitiesList[position].infoUrl
-        holder.itemView.findViewById<TextView>(R.id.description_tv).text =
-            activitiesList[position].description
-        holder.itemView.findViewById<TextView>(R.id.locality_tv).text =
-            activitiesList[position].locality
-
-        holder.itemView.setOnClickListener {
-            Toast.makeText(context, "Clicked $position", Toast.LENGTH_SHORT).show()
+        nameTv.text = item.name
+        localityTv.text = item.locality
+        if (item.images.isNotEmpty()) {
+            Glide.with(context).load(item.images[0].url)
+                .placeholder(R.drawable.image_not_available)
+                .error(R.drawable.image_not_available)
+                .into(thumbnail_iv)
         }
 
+        holder.itemView.setOnClickListener {
+            if (item.images.isNotEmpty()) {
+                Toast.makeText(
+                    context,
+                    "Clicked $position and the first image url is: ${item.images[0].url}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun getItemCount(): Int {
