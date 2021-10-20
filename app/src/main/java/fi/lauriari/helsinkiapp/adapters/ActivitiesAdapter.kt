@@ -10,14 +10,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import fi.lauriari.helsinkiapp.R
-import fi.lauriari.helsinkiapp.classes.SingleHelsinkiActivity
+import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import android.widget.ImageView
-import androidx.constraintlayout.widget.ConstraintLayout
 import com.bumptech.glide.Glide
 
 
 class ActivitiesAdapter(
-    private val activitiesList: MutableList<SingleHelsinkiActivity>,
+    private val activitiesList: MutableList<SingleHelsinkiItem>,
     private val context: Context
 ) :
     RecyclerView.Adapter<ActivitiesAdapter.MyViewHolder>() {
@@ -49,36 +48,37 @@ class ActivitiesAdapter(
         val item = activitiesList[position]
         val nameTv = holder.itemView.findViewById<TextView>(R.id.name_tv)
         val localityTv = holder.itemView.findViewById<TextView>(R.id.locality_tv)
-        val tags_tv = holder.itemView.findViewById<TextView>(R.id.tags_tv)
+        val tagsTv = holder.itemView.findViewById<TextView>(R.id.tags_tv)
         val thumbnailIv = holder.itemView.findViewById<ImageView>(R.id.thumbnail_iv)
 
         nameTv.text = item.name
         localityTv.text = item.locality
 
         item.tags.forEach {
-            if (it != item.tags.last()) tags_tv.append("${it.name}, ") else tags_tv.append(it.name)
+            if (it == item.tags[0]) {
+                tagsTv.append(" ${it.name}, ")
+            } else {
+                if (it != item.tags.last()) tagsTv.append("${it.name}, ") else tagsTv.append(it.name)
+            }
         }
 
 
-        if (item.images.isNotEmpty()) {
-            Glide.with(context).load(item.images[0].url)
-                .placeholder(R.drawable.loading_animation)
-                .error(R.drawable.image_not_available)
-                .into(thumbnailIv)
+
+        if (item.images != null) {
+            if (item.images!!.isNotEmpty()) {
+                Glide.with(context).load(item.images!![0].url)
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.image_not_available)
+                    .into(thumbnailIv)
+            } else {
+                thumbnailIv.setBackgroundResource(R.drawable.image_not_available)
+            }
         } else {
             thumbnailIv.setBackgroundResource(R.drawable.image_not_available)
         }
 
         holder.itemView.setOnClickListener {
-            if (item.images.isNotEmpty()) {
-                Toast.makeText(
-                    context,
-                    "Clicked $position",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show()
-            }
+            Toast.makeText(context, "Clicked $position ${item.eventDates?.starting_day}", Toast.LENGTH_SHORT).show()
         }
     }
 
