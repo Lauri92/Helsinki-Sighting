@@ -12,4 +12,10 @@ interface HelsinkiApi {
         @Query("tags_search") action: String,
         @Query("language_filter") languageFilter: String,
     ): Response<HelsinkiActivities>
+
+    @GET("v1/activities/")
+    suspend fun getActivitiesNearby(
+        @Query("distance_filter") stringrepresentation: String,
+        @Query("language_filter") languageFilter: String
+    ): Response<HelsinkiActivities>
 }

@@ -17,6 +17,12 @@ import fi.lauriari.helsinkiapp.databinding.FragmentBrowseBinding
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
 import fi.lauriari.helsinkiapp.viewmodelfactories.HelsinkiApiViewModelFactory
 import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
+import androidx.recyclerview.widget.RecyclerView
+
+import androidx.annotation.NonNull
+
+
+
 
 class BrowseFragment : Fragment() {
 
@@ -35,13 +41,29 @@ class BrowseFragment : Fragment() {
         val view = binding.root
         initializeViewModelRepositoryBinding(binding)
 
-        accessBinding?.viewmodel?.getActivities("guidance", "en")
+        //accessBinding?.viewmodel?.getActivities("guidance", "en")
 
-        accessBinding?.viewmodel?.response?.observe(viewLifecycleOwner, { response ->
+        accessBinding?.viewmodel?.getActivitiesNearby(
+            Triple(
+                60.169288220, 24.952353220, 0.2
+            ),
+            "en"
+        )
+
+        accessBinding?.activitiesTv?.setOnClickListener {
+            accessBinding?.viewmodel?.getActivitiesNearby(
+                Triple(
+                    60.309635162353516, 24.51854705810547, 1.0
+                ),
+                "en"
+            )
+        }
+
+        accessBinding?.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
             if (response.isSuccessful) {
                 Log.d("response", "${response.body()!!.data}")
                 accessBinding?.recyclerview?.layoutManager =
-                    LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+                    LinearLayoutManager(requireContext())
                 val adapterList = mutableListOf<SingleHelsinkiActivity>()
                 response.body()?.data?.forEach {
                     adapterList.add(
@@ -57,11 +79,11 @@ class BrowseFragment : Fragment() {
                             tags = it.tags
                         )
                     )
-                    accessBinding?.recyclerview?.adapter =
-                        ActivitiesAdapter(adapterList, requireContext())
                 }
-
+                accessBinding?.recyclerview?.adapter =
+                    ActivitiesAdapter(adapterList, requireContext())
             } else {
+                // TODO Maybe create an alert dialog showing that the fetch failed
                 Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
             }
         })

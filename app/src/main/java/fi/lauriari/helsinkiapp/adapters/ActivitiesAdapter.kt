@@ -18,7 +18,7 @@ import com.bumptech.glide.Glide
 
 class ActivitiesAdapter(
     private val activitiesList: MutableList<SingleHelsinkiActivity>,
-    val context: Context
+    private val context: Context
 ) :
     RecyclerView.Adapter<ActivitiesAdapter.MyViewHolder>() {
 
@@ -49,10 +49,17 @@ class ActivitiesAdapter(
         val item = activitiesList[position]
         val nameTv = holder.itemView.findViewById<TextView>(R.id.name_tv)
         val localityTv = holder.itemView.findViewById<TextView>(R.id.locality_tv)
+        val tags_tv = holder.itemView.findViewById<TextView>(R.id.tags_tv)
         val thumbnailIv = holder.itemView.findViewById<ImageView>(R.id.thumbnail_iv)
 
         nameTv.text = item.name
         localityTv.text = item.locality
+
+        item.tags.forEach {
+            if (it != item.tags.last()) tags_tv.append("${it.name}, ") else tags_tv.append(it.name)
+        }
+
+
         if (item.images.isNotEmpty()) {
             Glide.with(context).load(item.images[0].url)
                 .placeholder(R.drawable.loading_animation)
@@ -66,14 +73,13 @@ class ActivitiesAdapter(
             if (item.images.isNotEmpty()) {
                 Toast.makeText(
                     context,
-                    "Clicked $position and the first image url is: ${item.images[0].url}",
+                    "Clicked $position",
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
                 Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show()
             }
         }
-        holder.itemView.findViewById<ConstraintLayout>(R.id.activities_row_layout).foreground = null
     }
 
     override fun getItemCount(): Int {

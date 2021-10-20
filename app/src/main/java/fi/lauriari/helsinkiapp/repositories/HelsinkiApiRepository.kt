@@ -10,4 +10,15 @@ class HelsinkiApiRepository {
     suspend fun getActivities(tag: String, language: String): Response<HelsinkiActivities> {
         return HelsinkiApiRetrofitInstance.api.getActivities(tag, language)
     }
+
+    suspend fun getActivitiesNearby(
+        triple: Triple<Double, Double, Double>,
+        languageFilter: String
+    ): Response<HelsinkiActivities> {
+        val stringRepresentation = "${triple.first},${triple.second},${triple.third}"
+        return HelsinkiApiRetrofitInstance.api.getActivitiesNearby(
+            stringRepresentation,
+            languageFilter
+        )
+    }
 }

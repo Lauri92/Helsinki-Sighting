@@ -2,4 +2,9 @@
     <string name="app_name">Helsinki App</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="activities_near_you">Activities near you</string>
+    <string name="tags">Tags:</string>
+    <string name="near_me">Near me</string>
+    <string name="search">Search</string>
+    <string name="favorites">Favorites</string>
 </resources>
