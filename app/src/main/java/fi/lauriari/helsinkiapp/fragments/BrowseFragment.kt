@@ -1,6 +1,11 @@
 package fi.lauriari.helsinkiapp.fragments
 
+import android.Manifest
+import android.app.AlertDialog
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,9 +14,13 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.location.*
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ActivitiesAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
@@ -23,6 +32,8 @@ import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
+import org.osmdroid.config.Configuration
+import org.osmdroid.util.GeoPoint
 import retrofit2.Response
 
 
@@ -31,20 +42,44 @@ class BrowseFragment : Fragment() {
     private lateinit var apiViewModel: HelsinkiApiViewModel
     var accessBinding: FragmentBrowseBinding? = null
 
+    private lateinit var fusedLocationClient:
+            FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+    private var locationRequest: LocationRequest? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        Configuration.getInstance().load(
+            requireContext(),
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+        )
         val binding: FragmentBrowseBinding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_browse, container, false)
         val view = binding.root
         initializeViewModelRepositoryBinding(binding)
+
+        initLocationRequestAndCallback()
+
+        checkSelfPermissions()
 
         setObservers()
 
         setSpinner()
 
         return view
+    }
+
+    private fun initializeViewModelRepositoryBinding(binding: FragmentBrowseBinding) {
+        val apiRepository = HelsinkiApiRepository()
+        val viewModelFactory = HelsinkiApiViewModelFactory(apiRepository)
+        apiViewModel =
+            ViewModelProvider(this, viewModelFactory).get(HelsinkiApiViewModel::class.java)
+        binding.lifecycleOwner = this
+        binding.viewmodel = apiViewModel
+        accessBinding = binding
     }
 
     private fun setObservers() {
@@ -61,7 +96,7 @@ class BrowseFragment : Fragment() {
     }
 
     private fun setSpinner() {
-        val spinnerArray = listOf("Activities", "Places", "Events")
+        val spinnerArray = listOf("Select", "Activities", "Places", "Events")
 
         ArrayAdapter(
             requireContext(),
@@ -71,11 +106,11 @@ class BrowseFragment : Fragment() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             accessBinding?.spinner?.adapter = adapter
         }
-        accessBinding?.spinner?.onItemSelectedListener = SpinnerActivity()
+        accessBinding?.spinner?.onItemSelectedListener = ItemsSpinner()
     }
 
-    private fun handleActivitiesResponse(response: Response<HelsinkiActivities>?) {
-        if (response!!.isSuccessful) {
+    private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
+        if (response.isSuccessful) {
             Log.d("response", "${response.body()!!.data}")
             accessBinding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
@@ -104,8 +139,8 @@ class BrowseFragment : Fragment() {
         }
     }
 
-    private fun handlePlacesResponse(response: Response<HelsinkiPlaces>?) {
-        if (response!!.isSuccessful) {
+    private fun handlePlacesResponse(response: Response<HelsinkiPlaces>) {
+        if (response.isSuccessful) {
             Log.d("response", "${response.body()!!.data}")
             accessBinding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
@@ -164,20 +199,109 @@ class BrowseFragment : Fragment() {
         }
     }
 
-    private fun initializeViewModelRepositoryBinding(binding: FragmentBrowseBinding) {
-        val apiRepository = HelsinkiApiRepository()
-        val viewModelFactory = HelsinkiApiViewModelFactory(apiRepository)
-        apiViewModel =
-            ViewModelProvider(this, viewModelFactory).get(HelsinkiApiViewModel::class.java)
-        binding.lifecycleOwner = this
-        binding.viewmodel = apiViewModel
-        accessBinding = binding
+    private fun checkSelfPermissions() {
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Permissions are not granted so requesting of location updates is not possible
+                // Prompt user to grant them then listen to callback wether they were granted or not
+            Log.i("test", "failed")
+            AlertDialog.Builder(requireContext())
+                .setTitle("Location Permission required")
+                .setMessage("This application needs the Location permission, please accept to use location functionality")
+                .setPositiveButton(
+                    "OK"
+                ) { _, _ ->
+                    //Prompt the user once explanation has been shown
+                    // FIXME: deprecation
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        PERMISSIONS_REQUEST_LOCATION
+                    )
+                }
+                .create()
+                .show()
+
+        } else {
+            // Permissions are granted so start requesting location updates
+            Log.i("test", "Passed")
+
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    // Got last known location. In some rare situations this can be null.
+                    if (location != null) {
+                        Log.d(
+                            "location",
+                            "Got last known location. In some rare situations this can be null."
+                        )
+                    }
+                }
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest!!,
+                locationCallback, Looper.getMainLooper()
+            )
+
+        }
     }
 
-    inner class SpinnerActivity : Fragment(), AdapterView.OnItemSelectedListener {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+    ) {
+        when (requestCode) {
+            PERMISSIONS_REQUEST_LOCATION -> {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted
+                    if (ContextCompat.checkSelfPermission(
+                            requireContext(),
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        fusedLocationClient.requestLocationUpdates(
+                            locationRequest!!,
+                            locationCallback, Looper.getMainLooper()
+                        )
+
+                    }
+                }
+            }
+        }
+    }
+
+    private fun initLocationRequestAndCallback() {
+        locationRequest = LocationRequest
+            .create()
+            .setInterval(1000)
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+
+                for (location in locationResult.locations) {
+                    val geoPoint = GeoPoint(location.latitude, location.longitude)
+                    Log.d("location", geoPoint.toDoubleString())
+                }
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        Log.d("destroy", "onDestroyView called")
+        super.onDestroyView()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    inner class ItemsSpinner : Fragment(), AdapterView.OnItemSelectedListener {
 
         override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
-            Log.d("spinner", parent.getItemAtPosition(pos).toString())
             when (parent.getItemAtPosition(pos).toString()) {
                 "Activities" -> {
                     accessBinding?.viewmodel?.getActivitiesNearby(
@@ -209,5 +333,9 @@ class BrowseFragment : Fragment() {
         override fun onNothingSelected(parent: AdapterView<*>) {
             // Another interface callback
         }
+    }
+
+    companion object {
+        private const val PERMISSIONS_REQUEST_LOCATION = 0
     }
 }
