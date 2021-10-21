@@ -2,21 +2,21 @@ package fi.lauriari.helsinkiapp.adapters
 
 import android.content.Context
 import android.text.Html
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import android.widget.ImageView
+import androidx.navigation.findNavController
 import com.bumptech.glide.Glide
+import fi.lauriari.helsinkiapp.fragments.BrowseFragmentDirections
 
 
 class ItemsAdapter(
-    private var activitiesList: MutableList<SingleHelsinkiItem>,
+    private var itemsList: MutableList<SingleHelsinkiItem>,
     private val context: Context
 ) :
     RecyclerView.Adapter<ItemsAdapter.MyViewHolder>() {
@@ -29,18 +29,16 @@ class ItemsAdapter(
     ): MyViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.activitiesrow_layout, parent, false)
-
-        Log.d("activitiesList", activitiesList.toString())
-
-        if (activitiesList[0].eventDates != null) {
-            activitiesList = activitiesList.distinctBy { it.description } as MutableList<SingleHelsinkiItem>
+        if (itemsList[0].eventDates != null) {
+            itemsList =
+                itemsList.distinctBy { it.description } as MutableList<SingleHelsinkiItem>
         }
 
-        activitiesList.forEach { activity ->
-            activity.name = activity.name?.let { it -> decodeHtmlString(it) }
-            activity.infoUrl = activity.infoUrl?.let { it -> decodeHtmlString(it) }
-            activity.description = activity.description?.let { it -> decodeHtmlString(it) }
-            activity.locality = activity.locality?.let { it -> decodeHtmlString(it) }
+        itemsList.forEach { item ->
+            item.name = item.name?.let { it -> decodeHtmlString(it) }
+            item.infoUrl = item.infoUrl?.let { it -> decodeHtmlString(it) }
+            item.description = item.description?.let { it -> decodeHtmlString(it) }
+            item.locality = item.locality?.let { it -> decodeHtmlString(it) }
         }
 
 
@@ -49,7 +47,7 @@ class ItemsAdapter(
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
 
-        val item = activitiesList[position]
+        val item = itemsList[position]
         val nameTv = holder.itemView.findViewById<TextView>(R.id.name_tv)
         val localityTv = holder.itemView.findViewById<TextView>(R.id.locality_tv)
         val tagsTv = holder.itemView.findViewById<TextView>(R.id.tags_tv)
@@ -58,15 +56,13 @@ class ItemsAdapter(
         nameTv.text = item.name
         localityTv.text = item.locality
 
-        item.tags.forEach {
-            if (it == item.tags[0]) {
+        item.tags?.forEach {
+            if (it == item.tags!![0]) {
                 tagsTv.append(" ${it.name}, ")
             } else {
-                if (it != item.tags.last()) tagsTv.append("${it.name}, ") else tagsTv.append(it.name)
+                if (it != item.tags!!.last()) tagsTv.append("${it.name}, ") else tagsTv.append(it.name)
             }
         }
-
-
 
         if (item.images != null) {
             if (item.images!!.isNotEmpty()) {
@@ -82,16 +78,14 @@ class ItemsAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            Toast.makeText(
-                context,
-                "Clicked $position ${item.eventDates?.starting_day}",
-                Toast.LENGTH_SHORT
-            ).show()
+            val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
+            holder.itemView.findNavController()
+                .navigate(action)
         }
     }
 
     override fun getItemCount(): Int {
-        return activitiesList.size
+        return itemsList.size
     }
 
 

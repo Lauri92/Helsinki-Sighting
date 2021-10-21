@@ -1,5 +1,6 @@
 package fi.lauriari.helsinkiapp.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -64,7 +65,4 @@ class HelsinkiApiViewModel(private val helsinkiApiRepository: HelsinkiApiReposit
             eventsResponse.value = apiResponse
         }
     }
-
-
-
 }

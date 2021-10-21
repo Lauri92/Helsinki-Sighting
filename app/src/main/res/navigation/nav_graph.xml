@@ -9,5 +9,18 @@
         android:id="@+id/browseFragment"
         android:name="fi.lauriari.helsinkiapp.fragments.BrowseFragment"
         android:label="fragment_browse"
-        tools:layout="@layout/fragment_browse" />
+        tools:layout="@layout/fragment_browse" >
+        <action
+            android:id="@+id/action_browseFragment_to_singleItemFragment"
+            app:destination="@id/singleItemFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/singleItemFragment"
+        android:name="fi.lauriari.helsinkiapp.fragments.SingleItemFragment"
+        android:label="fragment_single_item"
+        tools:layout="@layout/fragment_single_item" >
+        <argument
+            android:name="helsinkiItem"
+            app:argType="fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem" />
+    </fragment>
 </navigation>

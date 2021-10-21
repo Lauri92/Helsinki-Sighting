@@ -20,6 +20,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.*
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
@@ -65,6 +66,8 @@ class BrowseFragment : Fragment() {
 
         setSpinner()
 
+        Log.d("vmvalue", "${accessBinding!!.viewmodel!!.activitiesResponse.value}")
+
         return view
     }
 
@@ -104,16 +107,23 @@ class BrowseFragment : Fragment() {
         }
     }
 
+    // FIXME: called when returning from singleItemFragment
     private fun setObservers() {
         accessBinding?.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
+            Log.d("observers", "activitiesResponse observer")
             handleActivitiesResponse(response)
+            Log.d("observers", "activitiesResponse value :${response.body()!!.meta}")
         })
         accessBinding?.viewmodel?.placesResponse?.observe(viewLifecycleOwner, { response ->
+            Log.d("observers", "placesResponse observer")
             handlePlacesResponse(response)
+            Log.d("observers", "placesResponse value :${response.body()!!.meta}")
         })
 
         accessBinding?.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
+            Log.d("observers", "eventsResponse observer")
             handleEventsResponse(response)
+            Log.d("observers", "eventsResponse value :${response.body()!!.meta}")
         })
     }
 
@@ -133,7 +143,6 @@ class BrowseFragment : Fragment() {
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful) {
-            Log.d("response", "${response.body()!!.data}")
             accessBinding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
@@ -164,7 +173,6 @@ class BrowseFragment : Fragment() {
 
     private fun handlePlacesResponse(response: Response<HelsinkiPlaces>) {
         if (response.isSuccessful) {
-            Log.d("response", "${response.body()!!.data}")
             accessBinding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
@@ -195,7 +203,6 @@ class BrowseFragment : Fragment() {
 
     private fun handleEventsResponse(response: Response<HelsinkiEvents>) {
         if (response.isSuccessful) {
-            Log.d("response", "${response.body()!!.data}")
             accessBinding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
@@ -306,42 +313,44 @@ class BrowseFragment : Fragment() {
     inner class ItemsSpinner : Fragment(), AdapterView.OnItemSelectedListener {
 
         override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
-            when (parent.getItemAtPosition(pos).toString()) {
-                "Activities" -> {
-                    if (userLocation != null) {
-                        accessBinding?.progressBar?.visibility = View.VISIBLE
-                        accessBinding?.viewmodel?.getActivitiesNearby(
-                            Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, 1.0
-                            ),
-                            "en"
-                        )
+            if (view != null) {
+                when (parent.getItemAtPosition(pos).toString()) {
+                    "Activities" -> {
+                        if (userLocation != null) {
+                            accessBinding?.progressBar?.visibility = View.VISIBLE
+                            accessBinding?.viewmodel?.getActivitiesNearby(
+                                Triple(
+                                    userLocation!!.latitude, userLocation!!.longitude, 1.0
+                                ),
+                                "en"
+                            )
+                        }
                     }
-                }
-                "Places" -> {
-                    if (userLocation != null) {
-                        accessBinding?.progressBar?.visibility = View.VISIBLE
-                        accessBinding?.viewmodel?.getPlacesNearby(
-                            Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, 1.0
-                            ),
-                            "en"
-                        )
+                    "Places" -> {
+                        if (userLocation != null) {
+                            accessBinding?.progressBar?.visibility = View.VISIBLE
+                            accessBinding?.viewmodel?.getPlacesNearby(
+                                Triple(
+                                    userLocation!!.latitude, userLocation!!.longitude, 1.0
+                                ),
+                                "en"
+                            )
+                        }
                     }
-                }
-                "Events" -> {
-                    if (userLocation != null) {
-                        accessBinding?.progressBar?.visibility = View.VISIBLE
-                        accessBinding?.viewmodel?.getEventsNearby(
-                            Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, 1.0
-                            ),
-                            "en"
-                        )
+                    "Events" -> {
+                        if (userLocation != null) {
+                            accessBinding?.progressBar?.visibility = View.VISIBLE
+                            accessBinding?.viewmodel?.getEventsNearby(
+                                Triple(
+                                    userLocation!!.latitude, userLocation!!.longitude, 1.0
+                                ),
+                                "en"
+                            )
+                        }
                     }
-                }
-                "Select" -> {
-                    Log.d("location", "User location: $userLocation")
+                    "Select" -> {
+                        Log.d("location", "User location: $userLocation")
+                    }
                 }
             }
         }
