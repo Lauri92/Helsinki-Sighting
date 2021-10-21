@@ -15,11 +15,11 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 
 
-class ActivitiesAdapter(
-    private val activitiesList: MutableList<SingleHelsinkiItem>,
+class ItemsAdapter(
+    private var activitiesList: MutableList<SingleHelsinkiItem>,
     private val context: Context
 ) :
-    RecyclerView.Adapter<ActivitiesAdapter.MyViewHolder>() {
+    RecyclerView.Adapter<ItemsAdapter.MyViewHolder>() {
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
@@ -31,6 +31,10 @@ class ActivitiesAdapter(
             .inflate(R.layout.activitiesrow_layout, parent, false)
 
         Log.d("activitiesList", activitiesList.toString())
+
+        if (activitiesList[0].eventDates != null) {
+            activitiesList = activitiesList.distinctBy { it.description } as MutableList<SingleHelsinkiItem>
+        }
 
         activitiesList.forEach { activity ->
             activity.name = activity.name?.let { it -> decodeHtmlString(it) }
@@ -78,7 +82,11 @@ class ActivitiesAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            Toast.makeText(context, "Clicked $position ${item.eventDates?.starting_day}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Clicked $position ${item.eventDates?.starting_day}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 

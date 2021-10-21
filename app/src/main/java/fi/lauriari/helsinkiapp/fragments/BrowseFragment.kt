@@ -22,7 +22,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.*
 import fi.lauriari.helsinkiapp.R
-import fi.lauriari.helsinkiapp.adapters.ActivitiesAdapter
+import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentBrowseBinding
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
@@ -46,22 +46,18 @@ class BrowseFragment : Fragment() {
             FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
+    private var userLocation: GeoPoint? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        Configuration.getInstance().load(
-            requireContext(),
-            PreferenceManager.getDefaultSharedPreferences(requireContext())
-        )
+
         val binding: FragmentBrowseBinding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_browse, container, false)
         val view = binding.root
         initializeViewModelRepositoryBinding(binding)
 
-        initLocationRequestAndCallback()
+        initLocationClientRequestAndCallback()
 
         checkSelfPermissions()
 
@@ -80,6 +76,32 @@ class BrowseFragment : Fragment() {
         binding.lifecycleOwner = this
         binding.viewmodel = apiViewModel
         accessBinding = binding
+    }
+
+    private fun initLocationClientRequestAndCallback() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        Configuration.getInstance().load(
+            requireContext(),
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+        )
+
+        locationRequest = LocationRequest
+            .create()
+            .setInterval(1000)
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+
+                for (location in locationResult.locations) {
+                    val geoPoint = GeoPoint(location.latitude, location.longitude)
+                    Log.d("location", geoPoint.toDoubleString())
+                    userLocation = GeoPoint(location.latitude, location.longitude)
+                }
+            }
+        }
     }
 
     private fun setObservers() {
@@ -132,7 +154,8 @@ class BrowseFragment : Fragment() {
                 )
             }
             accessBinding?.recyclerview?.adapter =
-                ActivitiesAdapter(adapterList, requireContext())
+                ItemsAdapter(adapterList, requireContext())
+            accessBinding?.progressBar?.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -162,7 +185,8 @@ class BrowseFragment : Fragment() {
                 )
             }
             accessBinding?.recyclerview?.adapter =
-                ActivitiesAdapter(adapterList, requireContext())
+                ItemsAdapter(adapterList, requireContext())
+            accessBinding?.progressBar?.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -192,7 +216,8 @@ class BrowseFragment : Fragment() {
                 )
             }
             accessBinding?.recyclerview?.adapter =
-                ActivitiesAdapter(adapterList, requireContext())
+                ItemsAdapter(adapterList, requireContext())
+            accessBinding?.progressBar?.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -210,7 +235,7 @@ class BrowseFragment : Fragment() {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             // Permissions are not granted so requesting of location updates is not possible
-                // Prompt user to grant them then listen to callback wether they were granted or not
+            // Prompt user to grant them then listen to callback whether they were granted or not
             Log.i("test", "failed")
             AlertDialog.Builder(requireContext())
                 .setTitle("Location Permission required")
@@ -236,10 +261,8 @@ class BrowseFragment : Fragment() {
                 .addOnSuccessListener { location: Location? ->
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
-                        Log.d(
-                            "location",
-                            "Got last known location. In some rare situations this can be null."
-                        )
+                        Log.d("locations", "Got last known location.")
+                        userLocation = GeoPoint(location.latitude, location.longitude)
                     }
                 }
             fusedLocationClient.requestLocationUpdates(
@@ -274,25 +297,6 @@ class BrowseFragment : Fragment() {
         }
     }
 
-    private fun initLocationRequestAndCallback() {
-        locationRequest = LocationRequest
-            .create()
-            .setInterval(1000)
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-
-                for (location in locationResult.locations) {
-                    val geoPoint = GeoPoint(location.latitude, location.longitude)
-                    Log.d("location", geoPoint.toDoubleString())
-                }
-            }
-        }
-    }
-
     override fun onDestroyView() {
         Log.d("destroy", "onDestroyView called")
         super.onDestroyView()
@@ -304,28 +308,40 @@ class BrowseFragment : Fragment() {
         override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
             when (parent.getItemAtPosition(pos).toString()) {
                 "Activities" -> {
-                    accessBinding?.viewmodel?.getActivitiesNearby(
-                        Triple(
-                            60.16884994506836, 24.94088363647461, 0.2
-                        ),
-                        "en"
-                    )
+                    if (userLocation != null) {
+                        accessBinding?.progressBar?.visibility = View.VISIBLE
+                        accessBinding?.viewmodel?.getActivitiesNearby(
+                            Triple(
+                                userLocation!!.latitude, userLocation!!.longitude, 1.0
+                            ),
+                            "en"
+                        )
+                    }
                 }
                 "Places" -> {
-                    accessBinding?.viewmodel?.getPlacesNearby(
-                        Triple(
-                            60.16884994506836, 24.94088363647461, 0.2
-                        ),
-                        "en"
-                    )
+                    if (userLocation != null) {
+                        accessBinding?.progressBar?.visibility = View.VISIBLE
+                        accessBinding?.viewmodel?.getPlacesNearby(
+                            Triple(
+                                userLocation!!.latitude, userLocation!!.longitude, 1.0
+                            ),
+                            "en"
+                        )
+                    }
                 }
                 "Events" -> {
-                    accessBinding?.viewmodel?.getEventsNearby(
-                        Triple(
-                            60.16884994506836, 24.94088363647461, 0.2
-                        ),
-                        "en"
-                    )
+                    if (userLocation != null) {
+                        accessBinding?.progressBar?.visibility = View.VISIBLE
+                        accessBinding?.viewmodel?.getEventsNearby(
+                            Triple(
+                                userLocation!!.latitude, userLocation!!.longitude, 1.0
+                            ),
+                            "en"
+                        )
+                    }
+                }
+                "Select" -> {
+                    Log.d("location", "User location: $userLocation")
                 }
             }
         }
