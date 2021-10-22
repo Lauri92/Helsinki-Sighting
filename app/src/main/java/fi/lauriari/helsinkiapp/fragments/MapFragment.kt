@@ -35,6 +35,8 @@ class MapFragment : Fragment() {
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
     private var userLocation: GeoPoint? = null
+    private lateinit var ownLocationmarker: Marker
+    private lateinit var locationmarker: Marker
 
     private var binding: FragmentMapBinding? = null
 
@@ -46,12 +48,33 @@ class MapFragment : Fragment() {
         binding!!.lifecycleOwner = this
         initLocationClientRequestAndCallback()
         checkSelfPermissions()
-        setMapAndMarker()
+        setMap()
+        setMarkers()
+        setOnClickListerners()
 
         return binding!!.root
     }
 
-    private fun setMapAndMarker() {
+    private fun setOnClickListerners() {
+        binding!!.myLocationFab.setOnClickListener {
+            binding!!.map.controller.animateTo(
+                GeoPoint(
+                    userLocation!!.latitude,
+                    userLocation!!.longitude
+                )
+            )
+        }
+        binding!!.itemLocationFab.setOnClickListener {
+            binding!!.map.controller.animateTo(
+                GeoPoint(
+                    args.latitude.toDouble(),
+                    args.longitude.toDouble()
+                )
+            )
+        }
+    }
+
+    private fun setMap() {
         binding!!.map.setTileSource(TileSourceFactory.MAPNIK)
         binding!!.map.setMultiTouchControls(true)
         binding!!.map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
@@ -62,24 +85,56 @@ class MapFragment : Fragment() {
                 args.longitude.toDouble()
             )
         )
-        val marker = Marker(binding!!.map)
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        marker.icon = AppCompatResources.getDrawable(
-            requireContext(),
-            R.drawable.ic_baseline_location_on_24
-        )
-        marker.position = GeoPoint(
-            args.latitude.toDouble(),
-            args.longitude.toDouble()
-        )
+    }
 
-        marker.setOnMarkerClickListener { _, _ ->
-            Toast.makeText(requireContext(), "Clicked marker", Toast.LENGTH_SHORT).show()
-            return@setOnMarkerClickListener true
+    private fun setMarkers() {
+
+        // Own location marker is used in updating ownlocation but initilized here
+        ownLocationmarker = Marker(binding!!.map)
+
+        locationmarker = Marker(binding!!.map).also { marker ->
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            marker.icon = AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.ic_baseline_location_on_24
+            )
+            marker.position = GeoPoint(
+                args.latitude.toDouble(),
+                args.longitude.toDouble()
+            )
+            marker.setOnMarkerClickListener { _, _ ->
+                Toast.makeText(
+                    requireContext(),
+                    "Clicked marker, maybe put the item name here?",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnMarkerClickListener true
+            }
         }
 
-        binding!!.map.overlays.add(marker)
+        binding!!.map.overlays.add(locationmarker)
+    }
 
+    private fun updateUserLocation(geoPoint: GeoPoint) {
+
+        binding!!.map.overlays.forEach {
+            if (it is Marker && it.id == "ownLocationMarker") {
+                binding!!.map.overlays.remove(it)
+            }
+        }
+        ownLocationmarker.let { marker ->
+            marker.id = "ownLocationMarker"
+            marker.icon = AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.person
+            )
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            marker.position = GeoPoint(geoPoint.latitude, geoPoint.longitude)
+            marker.setInfoWindow(null)
+        }
+        binding!!.map.overlays.add(ownLocationmarker)
+        //displays the ownLocationmarker as soon as it has been added.
+        binding!!.map.invalidate()
     }
 
     private fun initLocationClientRequestAndCallback() {
@@ -105,6 +160,7 @@ class MapFragment : Fragment() {
                     val geoPoint = GeoPoint(location.latitude, location.longitude)
                     Log.d("location", geoPoint.toDoubleString())
                     userLocation = GeoPoint(location.latitude, location.longitude)
+                    updateUserLocation(userLocation!!)
                 }
             }
         }
