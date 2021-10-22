@@ -2,6 +2,7 @@ package fi.lauriari.helsinkiapp.fragments
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -33,7 +34,11 @@ import org.osmdroid.bonuspack.routing.Road
 import org.osmdroid.views.overlay.Polyline
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
-import androidx.lifecycle.Transformations.map
+import android.provider.Settings
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class MapFragment : Fragment() {
 
@@ -54,9 +59,6 @@ class MapFragment : Fragment() {
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
         binding!!.lifecycleOwner = this
-
-        val policy = ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
         initLocationClientRequestAndCallback()
         checkSelfPermissions()
         setMap()
@@ -85,86 +87,124 @@ class MapFragment : Fragment() {
         }
         binding!!.directionsFab.setOnClickListener {
 
-            val roadManager: RoadManager = OSRMRoadManager(
-                requireContext(),
-                PreferenceManager.getDefaultSharedPreferences(requireContext()).toString()
-            )
-
-            val waypoints = ArrayList<GeoPoint>()
-            waypoints.add(GeoPoint(userLocation!!.latitude, userLocation!!.longitude))
-            val endPoint = GeoPoint(args.latitude.toDouble(), args.longitude.toDouble())
-            waypoints.add(endPoint)
-
-            (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT)
-
-            val road = roadManager.getRoad(waypoints)
-
-            val roadOverlay = RoadManager.buildRoadOverlay(road)
-            roadOverlay.id = roadPolyline
-
-            binding!!.map.overlays.add(roadOverlay)
-
-            for (i in road.mNodes.indices) {
-                val node = road.mNodes[i]
-                val nodeMarker = Marker(binding!!.map)
-                nodeMarker.id = roadPolylineMarker
-                nodeMarker.icon = AppCompatResources.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_baseline_directions_24
-                )
-                nodeMarker.position = node.mLocation
-                nodeMarker.title = "Step $i"
-                nodeMarker.snippet = node.mInstructions
-                nodeMarker.subDescription =
-                    Road.getLengthDurationText(requireContext(), node.mLength, node.mDuration)
-                if (node.mInstructions != null) {
-                    when {
-                        node.mInstructions.contains("Turn right") -> {
-                            nodeMarker.image = AppCompatResources.getDrawable(
-                                requireContext(),
-                                R.drawable.ic_turn_right
-                            )
-                        }
-                        node.mInstructions.contains("Turn left") -> {
-                            nodeMarker.image = AppCompatResources.getDrawable(
-                                requireContext(),
-                                R.drawable.ic_turn_left
-                            )
-                        }
-                        node.mInstructions.contains("Continue") -> {
-                            nodeMarker.image = AppCompatResources.getDrawable(
-                                requireContext(),
-                                R.drawable.ic_continue
-                            )
-                        }
-                        node.mInstructions.contains("slight left") -> {
-                            nodeMarker.image = AppCompatResources.getDrawable(
-                                requireContext(),
-                                R.drawable.ic_slight_left
-                            )
-                        }
-                        node.mInstructions.contains("slight right") -> {
-                            nodeMarker.image = AppCompatResources.getDrawable(
-                                requireContext(),
-                                R.drawable.ic_slight_right
-                            )
-                        }
-                    }
+            binding!!.directionsFab.isClickable = false
+            lifecycleScope.launch(context = Dispatchers.IO) {
+                val addRoute = async(Dispatchers.IO) {
+                    createRoadPolyLine()
                 }
-                binding!!.map.overlays.add(nodeMarker)
+                addRoute.await()
+                activity?.runOnUiThread {
+                    binding!!.directionsFab.visibility = View.GONE
+                    binding!!.clearFab.visibility = View.VISIBLE
+                    binding!!.directionsFab.isClickable = true
+                }
             }
-            binding!!.map.invalidate()
-            binding!!.directionsFab.visibility = View.GONE
-            binding!!.clearFab.visibility = View.VISIBLE
+
+
         }
         binding!!.clearFab.setOnClickListener {
-            binding!!.map.overlays.forEach {
-                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
-                    binding!!.map.overlays.remove(it)
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle("Navigation")
+            builder.setMessage(
+                "Are you sure you want to remove navigation helper?"
+            )
+            builder.setIcon(android.R.drawable.ic_dialog_alert)
+            builder.setPositiveButton("Yes") { _, _ ->
+                binding!!.clearFab.isClickable = false
+                binding!!.map.overlays.forEach {
+                    if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
+                        binding!!.map.overlays.remove(it)
+                    }
+                }
+                binding!!.clearFab.visibility = View.GONE
+                binding!!.directionsFab.visibility = View.VISIBLE
+                binding!!.clearFab.isClickable = true
+            }
+            builder.setNegativeButton("Cancel") { _, _ ->
+            }.create()
+            builder.show()
+        }
+    }
+
+    private fun createRoadPolyLine() {
+        val roadManager: RoadManager = OSRMRoadManager(
+            requireContext(),
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).toString()
+        )
+
+        val waypoints = ArrayList<GeoPoint>()
+        waypoints.add(GeoPoint(userLocation!!.latitude, userLocation!!.longitude))
+        val endPoint = GeoPoint(args.latitude.toDouble(), args.longitude.toDouble())
+        waypoints.add(endPoint)
+
+        (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT)
+
+        val road = roadManager.getRoad(waypoints)
+
+        val roadOverlay = RoadManager.buildRoadOverlay(road)
+        roadOverlay.id = roadPolyline
+
+        binding!!.map.overlays.add(roadOverlay)
+
+        createPolylineMarkers(road)
+    }
+
+    private fun createPolylineMarkers(road: Road) {
+        for (i in road.mNodes.indices) {
+            val node = road.mNodes[i]
+            val nodeMarker = Marker(binding!!.map)
+            nodeMarker.id = roadPolylineMarker
+            nodeMarker.icon = AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.ic_baseline_directions_24
+            )
+            nodeMarker.position = node.mLocation
+            nodeMarker.title = "Step $i"
+            nodeMarker.snippet = node.mInstructions
+            nodeMarker.subDescription =
+                Road.getLengthDurationText(requireContext(), node.mLength, node.mDuration)
+            if (node.mInstructions != null) {
+                when {
+                    node.mInstructions.contains("Turn right") -> {
+                        nodeMarker.image = AppCompatResources.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_turn_right
+                        )
+                    }
+                    node.mInstructions.contains("Turn left") -> {
+                        nodeMarker.image = AppCompatResources.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_turn_left
+                        )
+                    }
+                    node.mInstructions.contains("Continue") -> {
+                        nodeMarker.image = AppCompatResources.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_continue
+                        )
+                    }
+                    node.mInstructions.contains("slight left") -> {
+                        nodeMarker.image = AppCompatResources.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_slight_left
+                        )
+                    }
+                    node.mInstructions.contains("slight right") -> {
+                        nodeMarker.image = AppCompatResources.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_slight_right
+                        )
+                    }
+                    node.mInstructions.contains("waypoint") -> {
+                        nodeMarker.image = AppCompatResources.getDrawable(
+                            requireContext(),
+                            R.drawable.ic_arrived
+                        )
+                    }
                 }
             }
-            binding!!.clearFab.visibility = View.GONE
-            binding!!.directionsFab.visibility = View.VISIBLE
+            binding!!.map.overlays.add(nodeMarker)
+            binding!!.map.invalidate()
         }
     }
 
@@ -252,7 +292,6 @@ class MapFragment : Fragment() {
 
                 for (location in locationResult.locations) {
                     val geoPoint = GeoPoint(location.latitude, location.longitude)
-                    Log.d("location", geoPoint.toDoubleString())
                     userLocation = GeoPoint(location.latitude, location.longitude)
                     updateUserLocation(userLocation!!)
                 }
