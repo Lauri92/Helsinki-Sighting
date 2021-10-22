@@ -61,14 +61,14 @@ data class EventsData(
 @Parcelize
 data class Hours(
     @SerializedName("weekday_id") val weekday_id: Int,
-    @SerializedName("opens") val opens: String,
-    @SerializedName("closes") val closes: String,
-    @SerializedName("open24h") val open24h: Boolean
+    @SerializedName("opens") val opens: String?,
+    @SerializedName("closes") val closes: String?,
+    @SerializedName("open24h") val open24h: Boolean?
 ) : Parcelable
 
 @Parcelize
 data class Opening_hours(
-    @SerializedName("hours") val hours: List<Hours>,
+    @SerializedName("hours") val hours: List<Hours>?,
     @SerializedName("openinghours_exception") val openinghours_exception: String
 ) : Parcelable
 
@@ -134,7 +134,7 @@ data class Where_when_duration(
 
 @Parcelize
 data class Event_dates(
-    @SerializedName("starting_day") val starting_day: String,
-    @SerializedName("ending_day") val ending_day: String,
-    @SerializedName("additional_description") val additional_description: String
+    @SerializedName("starting_day") val starting_day: String?,
+    @SerializedName("ending_day") val ending_day: String?,
+    @SerializedName("additional_description") val additional_description: String?
 ) : Parcelable

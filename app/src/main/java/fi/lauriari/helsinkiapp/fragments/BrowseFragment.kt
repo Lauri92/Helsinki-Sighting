@@ -319,9 +319,10 @@ class BrowseFragment : Fragment() {
                         if (userLocation != null) {
                             accessBinding?.progressBar?.visibility = View.VISIBLE
                             accessBinding?.viewmodel?.getActivitiesNearby(
+                                /*
                                 Triple(
-                                    userLocation!!.latitude, userLocation!!.longitude, 1.0
-                                ),
+                                    userLocation!!.latitude, userLocation!!.longitude, 0.5
+                                ),*/Triple(60.1700713, 24.9532164, 0.5),
                                 "en"
                             )
                         }
@@ -330,9 +331,10 @@ class BrowseFragment : Fragment() {
                         if (userLocation != null) {
                             accessBinding?.progressBar?.visibility = View.VISIBLE
                             accessBinding?.viewmodel?.getPlacesNearby(
+                                /*
                                 Triple(
-                                    userLocation!!.latitude, userLocation!!.longitude, 1.0
-                                ),
+                                    userLocation!!.latitude, userLocation!!.longitude, 0.5
+                                ),*/Triple(60.1700713, 24.9532164, 0.5),
                                 "en"
                             )
                         }
@@ -341,9 +343,10 @@ class BrowseFragment : Fragment() {
                         if (userLocation != null) {
                             accessBinding?.progressBar?.visibility = View.VISIBLE
                             accessBinding?.viewmodel?.getEventsNearby(
+                                /*
                                 Triple(
-                                    userLocation!!.latitude, userLocation!!.longitude, 1.0
-                                ),
+                                    userLocation!!.latitude, userLocation!!.longitude, 0.5
+                                ),*/Triple(60.1700713, 24.9532164, 0.5),
                                 "en"
                             )
                         }
