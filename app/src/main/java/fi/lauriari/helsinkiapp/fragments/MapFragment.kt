@@ -26,6 +26,14 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.bonuspack.routing.OSRMRoadManager
+import org.osmdroid.bonuspack.routing.RoadManager
+import java.util.ArrayList
+import org.osmdroid.bonuspack.routing.Road
+import org.osmdroid.views.overlay.Polyline
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
+import androidx.lifecycle.Transformations.map
 
 class MapFragment : Fragment() {
 
@@ -46,6 +54,9 @@ class MapFragment : Fragment() {
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
         binding!!.lifecycleOwner = this
+
+        val policy = ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
         initLocationClientRequestAndCallback()
         checkSelfPermissions()
         setMap()
@@ -71,6 +82,89 @@ class MapFragment : Fragment() {
                     args.longitude.toDouble()
                 )
             )
+        }
+        binding!!.directionsFab.setOnClickListener {
+
+            val roadManager: RoadManager = OSRMRoadManager(
+                requireContext(),
+                PreferenceManager.getDefaultSharedPreferences(requireContext()).toString()
+            )
+
+            val waypoints = ArrayList<GeoPoint>()
+            waypoints.add(GeoPoint(userLocation!!.latitude, userLocation!!.longitude))
+            val endPoint = GeoPoint(args.latitude.toDouble(), args.longitude.toDouble())
+            waypoints.add(endPoint)
+
+            (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT)
+
+            val road = roadManager.getRoad(waypoints)
+
+            val roadOverlay = RoadManager.buildRoadOverlay(road)
+            roadOverlay.id = roadPolyline
+
+            binding!!.map.overlays.add(roadOverlay)
+
+            for (i in road.mNodes.indices) {
+                val node = road.mNodes[i]
+                val nodeMarker = Marker(binding!!.map)
+                nodeMarker.id = roadPolylineMarker
+                nodeMarker.icon = AppCompatResources.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_baseline_directions_24
+                )
+                nodeMarker.position = node.mLocation
+                nodeMarker.title = "Step $i"
+                nodeMarker.snippet = node.mInstructions
+                nodeMarker.subDescription =
+                    Road.getLengthDurationText(requireContext(), node.mLength, node.mDuration)
+                if (node.mInstructions != null) {
+                    when {
+                        node.mInstructions.contains("Turn right") -> {
+                            nodeMarker.image = AppCompatResources.getDrawable(
+                                requireContext(),
+                                R.drawable.ic_turn_right
+                            )
+                        }
+                        node.mInstructions.contains("Turn left") -> {
+                            nodeMarker.image = AppCompatResources.getDrawable(
+                                requireContext(),
+                                R.drawable.ic_turn_left
+                            )
+                        }
+                        node.mInstructions.contains("Continue") -> {
+                            nodeMarker.image = AppCompatResources.getDrawable(
+                                requireContext(),
+                                R.drawable.ic_continue
+                            )
+                        }
+                        node.mInstructions.contains("slight left") -> {
+                            nodeMarker.image = AppCompatResources.getDrawable(
+                                requireContext(),
+                                R.drawable.ic_slight_left
+                            )
+                        }
+                        node.mInstructions.contains("slight right") -> {
+                            nodeMarker.image = AppCompatResources.getDrawable(
+                                requireContext(),
+                                R.drawable.ic_slight_right
+                            )
+                        }
+                    }
+                }
+                binding!!.map.overlays.add(nodeMarker)
+            }
+            binding!!.map.invalidate()
+            binding!!.directionsFab.visibility = View.GONE
+            binding!!.clearFab.visibility = View.VISIBLE
+        }
+        binding!!.clearFab.setOnClickListener {
+            binding!!.map.overlays.forEach {
+                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
+                    binding!!.map.overlays.remove(it)
+                }
+            }
+            binding!!.clearFab.visibility = View.GONE
+            binding!!.directionsFab.visibility = View.VISIBLE
         }
     }
 
@@ -118,12 +212,12 @@ class MapFragment : Fragment() {
     private fun updateUserLocation(geoPoint: GeoPoint) {
 
         binding!!.map.overlays.forEach {
-            if (it is Marker && it.id == "ownLocationMarker") {
+            if (it is Marker && it.id == ownLocationId) {
                 binding!!.map.overlays.remove(it)
             }
         }
         ownLocationmarker.let { marker ->
-            marker.id = "ownLocationMarker"
+            marker.id = ownLocationId
             marker.icon = AppCompatResources.getDrawable(
                 requireContext(),
                 R.drawable.person
@@ -242,6 +336,9 @@ class MapFragment : Fragment() {
 
     companion object {
         private const val PERMISSIONS_REQUEST_LOCATION = 0
+        private const val ownLocationId = "ownLocationMarker"
+        private const val roadPolyline = "roadPolyline"
+        private const val roadPolylineMarker = "roadPolylineMarker"
     }
 
     override fun onDestroyView() {

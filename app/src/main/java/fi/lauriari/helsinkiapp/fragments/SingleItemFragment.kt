@@ -48,11 +48,6 @@ class SingleItemFragment : Fragment() {
 
     private fun setOnclickListeners() {
         binding!!.streetaddressTv.setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                "Take me to the map and display the location and allows navigation by pressing a button there!",
-                Toast.LENGTH_SHORT
-            ).show()
             val action = SingleItemFragmentDirections.actionSingleItemFragmentToMapFragment(
                 (args.helsinkiItem.latitude as Double).toFloat(),
                 (args.helsinkiItem.longitude as Double).toFloat()
