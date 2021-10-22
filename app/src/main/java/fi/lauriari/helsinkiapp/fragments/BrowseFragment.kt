@@ -18,9 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.*
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
@@ -33,7 +31,6 @@ import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
-import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import retrofit2.Response
 
@@ -83,10 +80,7 @@ class BrowseFragment : Fragment() {
 
     private fun initLocationClientRequestAndCallback() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        Configuration.getInstance().load(
-            requireContext(),
-            PreferenceManager.getDefaultSharedPreferences(requireContext())
-        )
+
 
         locationRequest = LocationRequest
             .create()
@@ -119,7 +113,6 @@ class BrowseFragment : Fragment() {
             handlePlacesResponse(response)
             Log.d("observers", "placesResponse value :${response.body()!!.meta}")
         })
-
         accessBinding?.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
             Log.d("observers", "eventsResponse observer")
             handleEventsResponse(response)
@@ -154,6 +147,7 @@ class BrowseFragment : Fragment() {
                         infoUrl = it.info_url,
                         latitude = it.location.lat,
                         longitude = it.location.lon,
+                        streetAddress = it.location.address.street_address,
                         locality = it.location.address.locality,
                         description = it.description.body,
                         images = it.description.images,
@@ -184,6 +178,7 @@ class BrowseFragment : Fragment() {
                         infoUrl = it.info_url,
                         latitude = it.location.lat,
                         longitude = it.location.lon,
+                        streetAddress = it.location.address.street_address,
                         locality = it.location.address.locality,
                         description = it.description.body,
                         images = it.description.images,
@@ -214,6 +209,7 @@ class BrowseFragment : Fragment() {
                         infoUrl = it.info_url,
                         latitude = it.location.lat,
                         longitude = it.location.lon,
+                        streetAddress = it.location.address.street_address,
                         locality = it.location.address.locality,
                         description = it.description.body,
                         images = it.description.images,

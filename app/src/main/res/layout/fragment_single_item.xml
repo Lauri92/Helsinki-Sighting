@@ -19,8 +19,8 @@
             android:id="@+id/slider"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_marginTop="16dp"
             android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
             android:layout_marginRight="8dp"
             app:iss_auto_cycle="true"
             app:iss_corner_radius="20"
@@ -56,35 +56,45 @@
 
                 <TextView
                     android:id="@+id/name_tv"
-                    android:textSize="20sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
+                    android:textSize="20sp"
                     tools:text="TextView" />
 
                 <TextView
                     android:id="@+id/description_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    tools:text="TextView" />
-
-                <TextView
-                    android:id="@+id/locality_tv"
-                    android:layout_marginTop="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
+                    android:textSize="16sp"
                     tools:text="TextView" />
 
                 <TextView
                     android:id="@+id/specific_info_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoLink="web"
-                    tools:text="TextView"
-                    android:textColor="@color/black" />
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    tools:text="TextView" />
+
+                <TextView
+                    android:id="@+id/streetaddress_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#810606"
+                    android:textSize="16sp"
+                    tools:text="TextView" />
+
+                <TextView
+                    android:id="@+id/locality_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    tools:text="TextView" />
 
                 <TextView
                     android:id="@+id/info_url_tv"
@@ -92,6 +102,7 @@
                     android:layout_height="wrap_content"
                     android:autoLink="web"
                     android:textColorLink="#03A9F4"
+                    android:textSize="16sp"
                     tools:text="TextView" />
 
             </LinearLayout>

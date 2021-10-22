@@ -12,6 +12,7 @@ data class SingleHelsinkiItem(
     var infoUrl: String?,
     var latitude: Double?,
     var longitude: Double?,
+    var streetAddress: String?,
     var locality: String?,
     var description: String?,
     var images: List<Images>?,

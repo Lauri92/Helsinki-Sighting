@@ -23,25 +23,18 @@ class ItemsAdapter(
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        removeDuplicates()
+        decodeObjects()
+    }
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): MyViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.activitiesrow_layout, parent, false)
-        if (itemsList[0].eventDates != null) {
-            itemsList =
-                itemsList.distinctBy { it.description } as MutableList<SingleHelsinkiItem>
-        }
-
-        itemsList.forEach { item ->
-            item.name = item.name?.let { it -> decodeHtmlString(it) }
-            item.infoUrl = item.infoUrl?.let { it -> decodeHtmlString(it) }
-            item.description = item.description?.let { it -> decodeHtmlString(it) }
-            item.locality = item.locality?.let { it -> decodeHtmlString(it) }
-        }
-
-
         return MyViewHolder(view)
     }
 
@@ -88,10 +81,25 @@ class ItemsAdapter(
         return itemsList.size
     }
 
-
     //Prevent loading images into cells which don't have images, if going back and fort in the recyclerview
     override fun getItemViewType(position: Int): Int {
         return position
+    }
+
+    private fun decodeObjects() {
+        itemsList.forEach { item ->
+            item.name = item.name?.let { it -> decodeHtmlString(it) }
+            item.infoUrl = item.infoUrl?.let { it -> decodeHtmlString(it) }
+            item.description = item.description?.let { it -> decodeHtmlString(it) }
+            item.locality = item.locality?.let { it -> decodeHtmlString(it) }
+        }
+    }
+
+    private fun removeDuplicates() {
+        if (itemsList[0].eventDates != null) {
+            itemsList =
+                itemsList.distinctBy { it.description } as MutableList<SingleHelsinkiItem>
+        }
     }
 
     /**

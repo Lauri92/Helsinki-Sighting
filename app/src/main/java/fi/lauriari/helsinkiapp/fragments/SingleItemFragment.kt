@@ -6,8 +6,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.models.SlideModel
@@ -38,7 +41,24 @@ class SingleItemFragment : Fragment() {
 
         setSpecificInformation()
 
+        setOnclickListeners()
+
         return binding!!.root
+    }
+
+    private fun setOnclickListeners() {
+        binding!!.streetaddressTv.setOnClickListener {
+            Toast.makeText(
+                requireContext(),
+                "Take me to the map and display the location and allows navigation by pressing a button there!",
+                Toast.LENGTH_SHORT
+            ).show()
+            val action = SingleItemFragmentDirections.actionSingleItemFragmentToMapFragment(
+                (args.helsinkiItem.latitude as Double).toFloat(),
+                (args.helsinkiItem.longitude as Double).toFloat()
+            )
+            findNavController().navigate(action)
+        }
     }
 
     private fun setImages() {
@@ -61,6 +81,9 @@ class SingleItemFragment : Fragment() {
         binding!!.descriptionTv.text = args.helsinkiItem.description
         "${args.helsinkiItem.locality}\n".also { binding!!.localityTv.text = it }
         binding!!.infoUrlTv.text = args.helsinkiItem.infoUrl
+        binding!!.streetaddressTv.text = args.helsinkiItem.streetAddress
+        binding!!.streetaddressTv.paintFlags =
+            binding!!.streetaddressTv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
     }
 
     private fun setSpecificInformation() {
@@ -138,6 +161,7 @@ class SingleItemFragment : Fragment() {
         binding!!.specificInfoTv.append("Event times:\n")
         val startTime = args.helsinkiItem.eventDates?.starting_day
         val endTime = args.helsinkiItem.eventDates?.ending_day
+        val additionalDescription = args.helsinkiItem.eventDates?.additional_description
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.getDefault())
         try {
             var dateStart: Date? = null
@@ -148,7 +172,7 @@ class SingleItemFragment : Fragment() {
             if (endTime != null) {
                 dateEnd = dateFormat.parse(endTime)
             }
-            "Start date: ${dateStart ?: "N/A"}\nEnd date: ${dateEnd ?: "N/A"}\n".also {
+            "Start date: ${dateStart ?: "N/A"}\nEnd date: ${dateEnd ?: "N/A"}\n ${additionalDescription ?: ""}".also {
                 binding!!.specificInfoTv.append(it)
             }
         } catch (e: ParseException) {

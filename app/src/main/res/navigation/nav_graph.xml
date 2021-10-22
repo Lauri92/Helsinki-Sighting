@@ -9,7 +9,7 @@
         android:id="@+id/browseFragment"
         android:name="fi.lauriari.helsinkiapp.fragments.BrowseFragment"
         android:label="fragment_browse"
-        tools:layout="@layout/fragment_browse" >
+        tools:layout="@layout/fragment_browse">
         <action
             android:id="@+id/action_browseFragment_to_singleItemFragment"
             app:destination="@id/singleItemFragment" />
@@ -18,9 +18,24 @@
         android:id="@+id/singleItemFragment"
         android:name="fi.lauriari.helsinkiapp.fragments.SingleItemFragment"
         android:label="fragment_single_item"
-        tools:layout="@layout/fragment_single_item" >
+        tools:layout="@layout/fragment_single_item">
         <argument
             android:name="helsinkiItem"
             app:argType="fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem" />
+        <action
+            android:id="@+id/action_singleItemFragment_to_mapFragment"
+            app:destination="@id/mapFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="fi.lauriari.helsinkiapp.fragments.MapFragment"
+        android:label="fragment_map"
+        tools:layout="@layout/fragment_map">
+        <argument
+            android:name="latitude"
+            app:argType="float" />
+        <argument
+            android:name="longitude"
+            app:argType="float" />
     </fragment>
 </navigation>
