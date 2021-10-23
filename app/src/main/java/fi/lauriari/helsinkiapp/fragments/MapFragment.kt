@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
@@ -36,6 +37,7 @@ import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.provider.Settings
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -50,6 +52,8 @@ class MapFragment : Fragment() {
     private var userLocation: GeoPoint? = null
     private lateinit var ownLocationmarker: Marker
     private lateinit var locationmarker: Marker
+    private var roadManager: OSRMRoadManager? = null
+    private var transportationType: String = "byFoot"
 
     private var binding: FragmentMapBinding? = null
 
@@ -64,6 +68,11 @@ class MapFragment : Fragment() {
         setMap()
         setMarkers()
         setOnClickListerners()
+
+        BottomSheetBehavior.from(binding!!.bottomSheet).apply {
+            peekHeight = 65
+            this.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
 
         return binding!!.root
     }
@@ -85,23 +94,6 @@ class MapFragment : Fragment() {
                 )
             )
         }
-        binding!!.directionsFab.setOnClickListener {
-
-            binding!!.directionsFab.isClickable = false
-            lifecycleScope.launch(context = Dispatchers.IO) {
-                val addRoute = async(Dispatchers.IO) {
-                    createRoadPolyLine()
-                }
-                addRoute.await()
-                activity?.runOnUiThread {
-                    binding!!.directionsFab.visibility = View.GONE
-                    binding!!.clearFab.visibility = View.VISIBLE
-                    binding!!.directionsFab.isClickable = true
-                }
-            }
-
-
-        }
         binding!!.clearFab.setOnClickListener {
             val builder = AlertDialog.Builder(requireContext())
             builder.setTitle("Navigation")
@@ -117,17 +109,100 @@ class MapFragment : Fragment() {
                     }
                 }
                 binding!!.clearFab.visibility = View.GONE
-                binding!!.directionsFab.visibility = View.VISIBLE
                 binding!!.clearFab.isClickable = true
+                binding!!.walkDirectionsActiveIv.visibility = View.GONE
+                binding!!.bikeDirectionsActiveIv.visibility = View.GONE
+                binding!!.carDirectionsActiveIv.visibility = View.GONE
+
             }
             builder.setNegativeButton("Cancel") { _, _ ->
             }.create()
             builder.show()
         }
+        binding!!.walkDirectionsFab.setOnClickListener {
+            transportationType = "byFoot"
+            binding!!.walkDirectionsActiveIv.visibility = View.VISIBLE
+            binding!!.bikeDirectionsActiveIv.visibility = View.GONE
+            binding!!.carDirectionsActiveIv.visibility = View.GONE
+
+            binding!!.map.overlays.forEach {
+                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
+                    binding!!.map.overlays.remove(it)
+                }
+            }
+            binding!!.walkDirectionsFab.isClickable = false
+            binding!!.bikeDirectionsFab.isClickable = false
+            binding!!.carDirectionsFab.isClickable = false
+            lifecycleScope.launch(context = Dispatchers.IO) {
+                val addRoute = async(Dispatchers.IO) {
+                    createRoadPolyLine()
+                }
+                addRoute.await()
+                activity?.runOnUiThread {
+                    binding!!.clearFab.visibility = View.VISIBLE
+                    binding!!.walkDirectionsFab.isClickable = true
+                    binding!!.bikeDirectionsFab.isClickable = true
+                    binding!!.carDirectionsFab.isClickable = true
+                }
+            }
+
+        }
+        binding!!.bikeDirectionsFab.setOnClickListener {
+            transportationType = "byBike"
+            binding!!.walkDirectionsActiveIv.visibility = View.GONE
+            binding!!.bikeDirectionsActiveIv.visibility = View.VISIBLE
+            binding!!.carDirectionsActiveIv.visibility = View.GONE
+            binding!!.map.overlays.forEach {
+                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
+                    binding!!.map.overlays.remove(it)
+                }
+            }
+            binding!!.walkDirectionsFab.isClickable = false
+            binding!!.bikeDirectionsFab.isClickable = false
+            binding!!.carDirectionsFab.isClickable = false
+            lifecycleScope.launch(context = Dispatchers.IO) {
+                val addRoute = async(Dispatchers.IO) {
+                    createRoadPolyLine()
+                }
+                addRoute.await()
+                activity?.runOnUiThread {
+                    binding!!.clearFab.visibility = View.VISIBLE
+                    binding!!.walkDirectionsFab.isClickable = true
+                    binding!!.bikeDirectionsFab.isClickable = true
+                    binding!!.carDirectionsFab.isClickable = true
+                }
+            }
+        }
+        binding!!.carDirectionsFab.setOnClickListener {
+            transportationType = "byCar"
+            binding!!.walkDirectionsActiveIv.visibility = View.GONE
+            binding!!.bikeDirectionsActiveIv.visibility = View.GONE
+            binding!!.carDirectionsActiveIv.visibility = View.VISIBLE
+            binding!!.map.overlays.forEach {
+                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
+                    binding!!.map.overlays.remove(it)
+                }
+            }
+            binding!!.walkDirectionsFab.isClickable = false
+            binding!!.bikeDirectionsFab.isClickable = false
+            binding!!.carDirectionsFab.isClickable = false
+            lifecycleScope.launch(context = Dispatchers.IO) {
+                val addRoute = async(Dispatchers.IO) {
+                    createRoadPolyLine()
+                }
+                addRoute.await()
+                activity?.runOnUiThread {
+                    binding!!.clearFab.visibility = View.VISIBLE
+                    binding!!.walkDirectionsFab.isClickable = true
+                    binding!!.bikeDirectionsFab.isClickable = true
+                    binding!!.carDirectionsFab.isClickable = true
+                }
+            }
+        }
     }
 
     private fun createRoadPolyLine() {
-        val roadManager: RoadManager = OSRMRoadManager(
+        roadManager = OSRMRoadManager(
             requireContext(),
             PreferenceManager.getDefaultSharedPreferences(requireContext()).toString()
         )
@@ -137,9 +212,19 @@ class MapFragment : Fragment() {
         val endPoint = GeoPoint(args.latitude.toDouble(), args.longitude.toDouble())
         waypoints.add(endPoint)
 
-        (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT)
+        when (transportationType) {
+            "byFoot" -> {
+                (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT)
+            }
+            "byBike" -> {
+                (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_BIKE)
+            }
+            else -> {
+                (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_CAR)
+            }
+        }
 
-        val road = roadManager.getRoad(waypoints)
+        val road = roadManager!!.getRoad(waypoints)
 
         val roadOverlay = RoadManager.buildRoadOverlay(road)
         roadOverlay.id = roadPolyline
@@ -236,12 +321,9 @@ class MapFragment : Fragment() {
                 args.latitude.toDouble(),
                 args.longitude.toDouble()
             )
-            marker.setOnMarkerClickListener { _, _ ->
-                Toast.makeText(
-                    requireContext(),
-                    "Clicked marker, maybe put the item name here?",
-                    Toast.LENGTH_SHORT
-                ).show()
+            marker.title = args.itemName
+            marker.setOnMarkerClickListener { marker, _ ->
+                marker.showInfoWindow()
                 return@setOnMarkerClickListener true
             }
         }
@@ -291,6 +373,7 @@ class MapFragment : Fragment() {
                 locationResult ?: return
 
                 for (location in locationResult.locations) {
+                    Log.d("location", "${location.latitude} ${location.longitude}")
                     val geoPoint = GeoPoint(location.latitude, location.longitude)
                     userLocation = GeoPoint(location.latitude, location.longitude)
                     updateUserLocation(userLocation!!)

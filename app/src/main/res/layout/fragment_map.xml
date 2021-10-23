@@ -35,21 +35,6 @@
             app:tint="@color/blue" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/directions_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:clickable="true"
-            android:elevation="8dp"
-            android:src="@drawable/ic_baseline_directions_24"
-            app:backgroundTint="@color/white"
-            app:layout_constraintBottom_toTopOf="@+id/item_location_fab"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:tint="@color/blue" />
-
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/my_location_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -75,6 +60,134 @@
             app:layout_constraintBottom_toTopOf="@+id/my_location_fab"
             app:layout_constraintEnd_toEndOf="parent"
             app:tint="@color/blue" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/bottom_sheet"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/rounded"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|top"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_baseline_remove_24"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/set_type_of_transportation"
+                    android:textColor="@color/blue"
+                    android:textSize="20sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.042"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.287" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/walk_directions_fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true"
+                    android:src="@drawable/ic_baseline_directions_walk_24"
+                    app:backgroundTint="@color/white"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView"
+                    app:tint="@color/blue" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/bike_directions_fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true"
+                    android:src="@drawable/ic_baseline_directions_bike_24"
+                    app:backgroundTint="@color/white"
+                    app:layout_constraintStart_toEndOf="@+id/walk_directions_fab"
+                    app:layout_constraintTop_toBottomOf="@+id/textView"
+                    app:tint="@color/blue"
+                    tools:srcCompat="@tools:sample/avatars" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/car_directions_fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true"
+                    android:src="@drawable/ic_baseline_directions_car_24"
+                    app:backgroundTint="@color/white"
+                    app:layout_constraintStart_toEndOf="@+id/bike_directions_fab"
+                    app:layout_constraintTop_toBottomOf="@+id/textView"
+                    app:tint="@color/blue"
+                    tools:srcCompat="@tools:sample/avatars" />
+
+                <ImageView
+                    android:id="@+id/walk_directions_active_iv"
+                    android:layout_width="45dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|top"
+                    android:layout_marginTop="8dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_baseline_remove_24"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="@+id/walk_directions_fab"
+                    app:layout_constraintStart_toStartOf="@+id/walk_directions_fab"
+                    app:layout_constraintTop_toBottomOf="@+id/walk_directions_fab" />
+
+                <ImageView
+                    android:id="@+id/bike_directions_active_iv"
+                    android:layout_width="45dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|top"
+                    android:layout_marginTop="8dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_baseline_remove_24"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="@+id/bike_directions_fab"
+                    app:layout_constraintStart_toStartOf="@+id/bike_directions_fab"
+                    app:layout_constraintTop_toBottomOf="@+id/bike_directions_fab" />
+
+                <ImageView
+                    android:id="@+id/car_directions_active_iv"
+                    android:layout_width="45dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|top"
+                    android:layout_marginTop="8dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_baseline_remove_24"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="@+id/car_directions_fab"
+                    app:layout_constraintStart_toStartOf="@+id/car_directions_fab"
+                    app:layout_constraintTop_toBottomOf="@+id/car_directions_fab" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

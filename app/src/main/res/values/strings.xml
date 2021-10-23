@@ -7,4 +7,5 @@
     <string name="near_me">Near me</string>
     <string name="search">Search</string>
     <string name="favorites">Favorites</string>
+    <string name="set_type_of_transportation">Set type of transportation:</string>
 </resources>

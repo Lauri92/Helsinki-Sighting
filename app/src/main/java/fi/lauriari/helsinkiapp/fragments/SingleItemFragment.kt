@@ -50,7 +50,8 @@ class SingleItemFragment : Fragment() {
         binding!!.streetaddressTv.setOnClickListener {
             val action = SingleItemFragmentDirections.actionSingleItemFragmentToMapFragment(
                 (args.helsinkiItem.latitude as Double).toFloat(),
-                (args.helsinkiItem.longitude as Double).toFloat()
+                (args.helsinkiItem.longitude as Double).toFloat(),
+                args.helsinkiItem.name as String
             )
             findNavController().navigate(action)
         }

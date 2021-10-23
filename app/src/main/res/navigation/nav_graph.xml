@@ -37,5 +37,8 @@
         <argument
             android:name="longitude"
             app:argType="float" />
+        <argument
+            android:name="itemName"
+            app:argType="string" />
     </fragment>
 </navigation>
