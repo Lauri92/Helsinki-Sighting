@@ -9,60 +9,57 @@ import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import retrofit2.Response
 
 class HelsinkiApiViewModel(private val helsinkiApiRepository: HelsinkiApiRepository) : ViewModel() {
 
-    var activitiesResponse: MutableLiveData<Response<HelsinkiActivities>> = MutableLiveData()
-    var placesResponse: MutableLiveData<Response<HelsinkiPlaces>> = MutableLiveData()
-    var eventsResponse: MutableLiveData<Response<HelsinkiEvents>> = MutableLiveData()
 
     fun getActivities(tag: String, language: String) {
         viewModelScope.launch {
             val apiResponse = helsinkiApiRepository.getActivities(tag, language)
-            activitiesResponse.value = apiResponse
         }
     }
 
     fun getActivitiesNearby(
         triple: Triple<Double, Double, Double>,
         languageFilter: String,
-    ) {
-        viewModelScope.launch {
-            val apiResponse =
-                helsinkiApiRepository.getActivitiesNearby(
-                    triple,
-                    languageFilter
-                )
-            activitiesResponse.value = apiResponse
+    ): Response<HelsinkiActivities> {
+        var apiResponse: Response<HelsinkiActivities>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getActivitiesNearby(
+                triple,
+                languageFilter
+            )
         }
+        return apiResponse
     }
 
     fun getPlacesNearby(
         triple: Triple<Double, Double, Double>,
         languageFilter: String,
-    ) {
-        viewModelScope.launch {
-            val apiResponse =
-                helsinkiApiRepository.getPlacesNearby(
-                    triple,
-                    languageFilter
-                )
-            placesResponse.value = apiResponse
+    ): Response<HelsinkiPlaces> {
+        var apiResponse: Response<HelsinkiPlaces>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getPlacesNearby(
+                triple,
+                languageFilter
+            )
         }
+        return apiResponse
     }
 
     fun getEventsNearby(
         triple: Triple<Double, Double, Double>,
         languageFilter: String,
-    ) {
-        viewModelScope.launch {
-            val apiResponse =
-                helsinkiApiRepository.getEventsNearby(
-                    triple,
-                    languageFilter
-                )
-            eventsResponse.value = apiResponse
+    ): Response<HelsinkiEvents> {
+        var apiResponse: Response<HelsinkiEvents>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getEventsNearby(
+                triple,
+                languageFilter
+            )
         }
+        return apiResponse
     }
 }

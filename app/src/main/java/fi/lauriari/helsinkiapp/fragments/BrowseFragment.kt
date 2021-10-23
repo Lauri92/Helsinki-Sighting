@@ -18,7 +18,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.*
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
@@ -31,6 +33,10 @@ import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import retrofit2.Response
 
@@ -58,11 +64,12 @@ class BrowseFragment : Fragment() {
 
         checkSelfPermissions()
 
-        setObservers()
+        //setObservers()
+
+        binding?.recyclerview?.adapter?.stateRestorationPolicy =
+            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         setSpinner()
-
-        Log.d("vmvalue", "${binding!!.viewmodel!!.activitiesResponse.value}")
 
         return view
     }
@@ -99,6 +106,7 @@ class BrowseFragment : Fragment() {
         }
     }
 
+    /*
     // FIXME: called when returning from singleItemFragment
     private fun setObservers() {
         binding?.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
@@ -117,6 +125,8 @@ class BrowseFragment : Fragment() {
             Log.d("observers", "eventsResponse value :${response.body()!!.meta}")
         })
     }
+
+     */
 
     private fun setSpinner() {
         val spinnerArray = listOf("Select", "Activities", "Places", "Events")
@@ -310,39 +320,69 @@ class BrowseFragment : Fragment() {
             if (view != null) {
                 when (parent.getItemAtPosition(pos).toString()) {
                     "Activities" -> {
+                        Log.d("response", "Activities spinner")
                         if (userLocation != null) {
                             binding?.progressBar?.visibility = View.VISIBLE
-                            binding?.viewmodel?.getActivitiesNearby(
-                                /*
+                            lifecycleScope.launch(context = Dispatchers.IO) {
+                                val getActivities = async {
+                                    binding?.viewmodel?.getActivitiesNearby(
+                                        /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
                                 ),*/Triple(60.1700713, 24.9532164, 0.5),
-                                "en"
-                            )
+                                        "en"
+                                    )
+                                }
+                                getActivities.await()?.let {
+                                    lifecycleScope.launch(context = Dispatchers.Main) {
+                                        handleActivitiesResponse(it)
+                                    }
+                                }
+                            }
                         }
                     }
                     "Places" -> {
+                        Log.d("response", "Places spinner")
                         if (userLocation != null) {
                             binding?.progressBar?.visibility = View.VISIBLE
-                            binding?.viewmodel?.getPlacesNearby(
-                                /*
+                            lifecycleScope.launch(context = Dispatchers.IO) {
+                                val getPlaces = async {
+                                    binding?.viewmodel?.getPlacesNearby(
+                                        /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
                                 ),*/Triple(60.1700713, 24.9532164, 0.5),
-                                "en"
-                            )
+                                        "en"
+                                    )
+                                }
+                                getPlaces.await()?.let {
+                                    lifecycleScope.launch(context = Dispatchers.Main) {
+                                        handlePlacesResponse(it)
+                                    }
+                                }
+                            }
                         }
                     }
                     "Events" -> {
+                        Log.d("response", "Events spinner")
                         if (userLocation != null) {
                             binding?.progressBar?.visibility = View.VISIBLE
-                            binding?.viewmodel?.getEventsNearby(
-                                /*
+                            lifecycleScope.launch(context = Dispatchers.IO) {
+                                val getEvents = async {
+                                    binding?.viewmodel?.getEventsNearby(
+                                        /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
                                 ),*/Triple(60.1700713, 24.9532164, 0.5),
-                                "en"
-                            )
+                                        "en"
+                                    )
+                                }
+                                getEvents.await()?.let {
+                                    lifecycleScope.launch(context = Dispatchers.Main) {
+                                        handleEventsResponse(it)
+                                    }
+                                }
+                            }
                         }
                     }
                     "Select" -> {
