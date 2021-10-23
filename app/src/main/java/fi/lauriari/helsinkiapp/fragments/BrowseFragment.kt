@@ -38,7 +38,7 @@ import retrofit2.Response
 class BrowseFragment : Fragment() {
 
     private lateinit var apiViewModel: HelsinkiApiViewModel
-    var accessBinding: FragmentBrowseBinding? = null
+    var binding: FragmentBrowseBinding? = null
 
     private lateinit var fusedLocationClient:
             FusedLocationProviderClient
@@ -50,10 +50,9 @@ class BrowseFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val binding: FragmentBrowseBinding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_browse, container, false)
-        val view = binding.root
-        initializeViewModelRepositoryBinding(binding)
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_browse, container, false)
+        val view = binding!!.root
+        initializeViewModelRepositoryBinding(binding!!)
 
         initLocationClientRequestAndCallback()
 
@@ -63,7 +62,7 @@ class BrowseFragment : Fragment() {
 
         setSpinner()
 
-        Log.d("vmvalue", "${accessBinding!!.viewmodel!!.activitiesResponse.value}")
+        Log.d("vmvalue", "${binding!!.viewmodel!!.activitiesResponse.value}")
 
         return view
     }
@@ -75,7 +74,6 @@ class BrowseFragment : Fragment() {
             ViewModelProvider(this, viewModelFactory).get(HelsinkiApiViewModel::class.java)
         binding.lifecycleOwner = this
         binding.viewmodel = apiViewModel
-        accessBinding = binding
     }
 
     private fun initLocationClientRequestAndCallback() {
@@ -103,17 +101,17 @@ class BrowseFragment : Fragment() {
 
     // FIXME: called when returning from singleItemFragment
     private fun setObservers() {
-        accessBinding?.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
+        binding?.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
             Log.d("observers", "activitiesResponse observer")
             handleActivitiesResponse(response)
             Log.d("observers", "activitiesResponse value :${response.body()!!.meta}")
         })
-        accessBinding?.viewmodel?.placesResponse?.observe(viewLifecycleOwner, { response ->
+        binding?.viewmodel?.placesResponse?.observe(viewLifecycleOwner, { response ->
             Log.d("observers", "placesResponse observer")
             handlePlacesResponse(response)
             Log.d("observers", "placesResponse value :${response.body()!!.meta}")
         })
-        accessBinding?.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
+        binding?.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
             Log.d("observers", "eventsResponse observer")
             handleEventsResponse(response)
             Log.d("observers", "eventsResponse value :${response.body()!!.meta}")
@@ -129,14 +127,14 @@ class BrowseFragment : Fragment() {
             spinnerArray
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            accessBinding?.spinner?.adapter = adapter
+            binding?.spinner?.adapter = adapter
         }
-        accessBinding?.spinner?.onItemSelectedListener = ItemsSpinner()
+        binding?.spinner?.onItemSelectedListener = ItemsSpinner()
     }
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful) {
-            accessBinding?.recyclerview?.layoutManager =
+            binding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
@@ -156,9 +154,9 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            accessBinding?.recyclerview?.adapter =
+            binding?.recyclerview?.adapter =
                 ItemsAdapter(adapterList, requireContext())
-            accessBinding?.progressBar?.visibility = View.GONE
+            binding?.progressBar?.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -167,7 +165,7 @@ class BrowseFragment : Fragment() {
 
     private fun handlePlacesResponse(response: Response<HelsinkiPlaces>) {
         if (response.isSuccessful) {
-            accessBinding?.recyclerview?.layoutManager =
+            binding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
@@ -187,9 +185,9 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            accessBinding?.recyclerview?.adapter =
+            binding?.recyclerview?.adapter =
                 ItemsAdapter(adapterList, requireContext())
-            accessBinding?.progressBar?.visibility = View.GONE
+            binding?.progressBar?.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -198,7 +196,7 @@ class BrowseFragment : Fragment() {
 
     private fun handleEventsResponse(response: Response<HelsinkiEvents>) {
         if (response.isSuccessful) {
-            accessBinding?.recyclerview?.layoutManager =
+            binding?.recyclerview?.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
@@ -218,9 +216,9 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            accessBinding?.recyclerview?.adapter =
+            binding?.recyclerview?.adapter =
                 ItemsAdapter(adapterList, requireContext())
-            accessBinding?.progressBar?.visibility = View.GONE
+            binding?.progressBar?.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -313,8 +311,8 @@ class BrowseFragment : Fragment() {
                 when (parent.getItemAtPosition(pos).toString()) {
                     "Activities" -> {
                         if (userLocation != null) {
-                            accessBinding?.progressBar?.visibility = View.VISIBLE
-                            accessBinding?.viewmodel?.getActivitiesNearby(
+                            binding?.progressBar?.visibility = View.VISIBLE
+                            binding?.viewmodel?.getActivitiesNearby(
                                 /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
@@ -325,8 +323,8 @@ class BrowseFragment : Fragment() {
                     }
                     "Places" -> {
                         if (userLocation != null) {
-                            accessBinding?.progressBar?.visibility = View.VISIBLE
-                            accessBinding?.viewmodel?.getPlacesNearby(
+                            binding?.progressBar?.visibility = View.VISIBLE
+                            binding?.viewmodel?.getPlacesNearby(
                                 /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
@@ -337,8 +335,8 @@ class BrowseFragment : Fragment() {
                     }
                     "Events" -> {
                         if (userLocation != null) {
-                            accessBinding?.progressBar?.visibility = View.VISIBLE
-                            accessBinding?.viewmodel?.getEventsNearby(
+                            binding?.progressBar?.visibility = View.VISIBLE
+                            binding?.viewmodel?.getEventsNearby(
                                 /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
