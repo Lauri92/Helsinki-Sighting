@@ -29,12 +29,10 @@ import fi.lauriari.helsinkiapp.databinding.FragmentBrowseBinding
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
 import fi.lauriari.helsinkiapp.viewmodelfactories.HelsinkiApiViewModelFactory
 import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
-
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint

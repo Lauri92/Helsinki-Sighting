@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/browse"
+        android:id="@+id/near_me"
         android:icon="@drawable/ic_baseline_person_pin_circle_24"
         android:title="@string/near_me" />
     <item

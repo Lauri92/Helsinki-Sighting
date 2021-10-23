@@ -41,4 +41,14 @@
             android:name="itemName"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="fi.lauriari.helsinkiapp.FavoritesFragment"
+        android:label="fragment_favorites"
+        tools:layout="@layout/fragment_favorites" />
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="fi.lauriari.helsinkiapp.SearchFragment"
+        android:label="fragment_search"
+        tools:layout="@layout/fragment_search" />
 </navigation>
