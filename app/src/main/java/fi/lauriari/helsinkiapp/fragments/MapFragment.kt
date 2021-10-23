@@ -2,9 +2,8 @@ package fi.lauriari.helsinkiapp.fragments
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
@@ -13,7 +12,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,14 +31,12 @@ import org.osmdroid.bonuspack.routing.RoadManager
 import java.util.ArrayList
 import org.osmdroid.bonuspack.routing.Road
 import org.osmdroid.views.overlay.Polyline
-import android.os.StrictMode
-import android.os.StrictMode.ThreadPolicy
-import android.provider.Settings
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.osmdroid.views.overlay.PolyOverlayWithIW as PolyOverlayWithIW1
 
 class MapFragment : Fragment() {
 
@@ -70,7 +66,7 @@ class MapFragment : Fragment() {
         setOnClickListerners()
 
         BottomSheetBehavior.from(binding!!.bottomSheet).apply {
-            peekHeight = 65
+            peekHeight = 60
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
@@ -108,97 +104,90 @@ class MapFragment : Fragment() {
                         binding!!.map.overlays.remove(it)
                     }
                 }
+                binding!!.map.invalidate()
                 binding!!.clearFab.visibility = View.GONE
                 binding!!.clearFab.isClickable = true
                 binding!!.walkDirectionsActiveIv.visibility = View.GONE
                 binding!!.bikeDirectionsActiveIv.visibility = View.GONE
                 binding!!.carDirectionsActiveIv.visibility = View.GONE
-
             }
             builder.setNegativeButton("Cancel") { _, _ ->
             }.create()
             builder.show()
         }
         binding!!.walkDirectionsFab.setOnClickListener {
-            transportationType = "byFoot"
-            binding!!.walkDirectionsActiveIv.visibility = View.VISIBLE
-            binding!!.bikeDirectionsActiveIv.visibility = View.GONE
-            binding!!.carDirectionsActiveIv.visibility = View.GONE
-
-            binding!!.map.overlays.forEach {
-                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
-                    binding!!.map.overlays.remove(it)
-                }
-            }
-            binding!!.walkDirectionsFab.isClickable = false
-            binding!!.bikeDirectionsFab.isClickable = false
-            binding!!.carDirectionsFab.isClickable = false
+            handleUIChange("byFoot")
             lifecycleScope.launch(context = Dispatchers.IO) {
                 val addRoute = async(Dispatchers.IO) {
                     createRoadPolyLine()
                 }
                 addRoute.await()
                 activity?.runOnUiThread {
-                    binding!!.clearFab.visibility = View.VISIBLE
-                    binding!!.walkDirectionsFab.isClickable = true
-                    binding!!.bikeDirectionsFab.isClickable = true
-                    binding!!.carDirectionsFab.isClickable = true
+                    setButtonState()
                 }
             }
 
         }
         binding!!.bikeDirectionsFab.setOnClickListener {
-            transportationType = "byBike"
-            binding!!.walkDirectionsActiveIv.visibility = View.GONE
-            binding!!.bikeDirectionsActiveIv.visibility = View.VISIBLE
-            binding!!.carDirectionsActiveIv.visibility = View.GONE
-            binding!!.map.overlays.forEach {
-                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
-                    binding!!.map.overlays.remove(it)
-                }
-            }
-            binding!!.walkDirectionsFab.isClickable = false
-            binding!!.bikeDirectionsFab.isClickable = false
-            binding!!.carDirectionsFab.isClickable = false
+            handleUIChange("byBike")
             lifecycleScope.launch(context = Dispatchers.IO) {
                 val addRoute = async(Dispatchers.IO) {
                     createRoadPolyLine()
                 }
                 addRoute.await()
                 activity?.runOnUiThread {
-                    binding!!.clearFab.visibility = View.VISIBLE
-                    binding!!.walkDirectionsFab.isClickable = true
-                    binding!!.bikeDirectionsFab.isClickable = true
-                    binding!!.carDirectionsFab.isClickable = true
+                    setButtonState()
                 }
             }
         }
         binding!!.carDirectionsFab.setOnClickListener {
-            transportationType = "byCar"
-            binding!!.walkDirectionsActiveIv.visibility = View.GONE
-            binding!!.bikeDirectionsActiveIv.visibility = View.GONE
-            binding!!.carDirectionsActiveIv.visibility = View.VISIBLE
-            binding!!.map.overlays.forEach {
-                if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
-                    binding!!.map.overlays.remove(it)
-                }
-            }
-            binding!!.walkDirectionsFab.isClickable = false
-            binding!!.bikeDirectionsFab.isClickable = false
-            binding!!.carDirectionsFab.isClickable = false
+            handleUIChange("byCar")
             lifecycleScope.launch(context = Dispatchers.IO) {
                 val addRoute = async(Dispatchers.IO) {
                     createRoadPolyLine()
                 }
                 addRoute.await()
                 activity?.runOnUiThread {
-                    binding!!.clearFab.visibility = View.VISIBLE
-                    binding!!.walkDirectionsFab.isClickable = true
-                    binding!!.bikeDirectionsFab.isClickable = true
-                    binding!!.carDirectionsFab.isClickable = true
+                    setButtonState()
                 }
             }
         }
+    }
+
+    private fun handleUIChange(newTransportationType: String) {
+        transportationType = newTransportationType
+        when (newTransportationType) {
+            "byFoot" -> {
+                binding!!.walkDirectionsActiveIv.visibility = View.VISIBLE
+                binding!!.bikeDirectionsActiveIv.visibility = View.GONE
+                binding!!.carDirectionsActiveIv.visibility = View.GONE
+            }
+            "byBike" -> {
+                binding!!.walkDirectionsActiveIv.visibility = View.GONE
+                binding!!.bikeDirectionsActiveIv.visibility = View.VISIBLE
+                binding!!.carDirectionsActiveIv.visibility = View.GONE
+            }
+            else -> {
+                binding!!.walkDirectionsActiveIv.visibility = View.GONE
+                binding!!.bikeDirectionsActiveIv.visibility = View.GONE
+                binding!!.carDirectionsActiveIv.visibility = View.VISIBLE
+            }
+        }
+        binding!!.map.overlays.forEach {
+            if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
+                binding!!.map.overlays.remove(it)
+            }
+        }
+        binding!!.walkDirectionsFab.isClickable = false
+        binding!!.bikeDirectionsFab.isClickable = false
+        binding!!.carDirectionsFab.isClickable = false
+    }
+
+    private fun setButtonState() {
+        binding!!.clearFab.visibility = View.VISIBLE
+        binding!!.walkDirectionsFab.isClickable = true
+        binding!!.bikeDirectionsFab.isClickable = true
+        binding!!.carDirectionsFab.isClickable = true
     }
 
     private fun createRoadPolyLine() {
@@ -228,6 +217,8 @@ class MapFragment : Fragment() {
 
         val roadOverlay = RoadManager.buildRoadOverlay(road)
         roadOverlay.id = roadPolyline
+        // FIXME: fix deprecation
+        roadOverlay.color = Color.BLUE
 
         binding!!.map.overlays.add(roadOverlay)
 
