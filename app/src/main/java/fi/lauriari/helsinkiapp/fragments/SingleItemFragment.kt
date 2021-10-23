@@ -47,7 +47,7 @@ class SingleItemFragment : Fragment() {
     }
 
     private fun setOnclickListeners() {
-        binding!!.streetaddressTv.setOnClickListener {
+        binding!!.openMapFab.setOnClickListener {
             val action = SingleItemFragmentDirections.actionSingleItemFragmentToMapFragment(
                 (args.helsinkiItem.latitude as Double).toFloat(),
                 (args.helsinkiItem.longitude as Double).toFloat(),
