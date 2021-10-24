@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -32,7 +33,10 @@ import java.util.ArrayList
 import org.osmdroid.bonuspack.routing.Road
 import org.osmdroid.views.overlay.Polyline
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import fi.lauriari.helsinkiapp.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -51,46 +55,51 @@ class MapFragment : Fragment() {
     private var roadManager: OSRMRoadManager? = null
     private var transportationType: String = "byFoot"
 
-    private var binding: FragmentMapBinding? = null
+    private lateinit var binding: FragmentMapBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
-        binding!!.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         initLocationClientRequestAndCallback()
+        initNavigation()
         checkSelfPermissions()
         setMap()
         setMarkers()
         setOnClickListerners()
 
-        BottomSheetBehavior.from(binding!!.bottomSheet).apply {
+        BottomSheetBehavior.from(binding.bottomSheet).apply {
             peekHeight = 60
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
-        return binding!!.root
+        return binding.root
+    }
+
+    private fun initNavigation() {
+        (requireActivity() as MainActivity).findViewById<BottomNavigationView>(R.id.bottomNavigationView).visibility
     }
 
     private fun setOnClickListerners() {
-        binding!!.myLocationFab.setOnClickListener {
-            binding!!.map.controller.animateTo(
+        binding.myLocationFab.setOnClickListener {
+            binding.map.controller.animateTo(
                 GeoPoint(
                     userLocation!!.latitude,
                     userLocation!!.longitude
                 )
             )
         }
-        binding!!.itemLocationFab.setOnClickListener {
-            binding!!.map.controller.animateTo(
+        binding.itemLocationFab.setOnClickListener {
+            binding.map.controller.animateTo(
                 GeoPoint(
                     args.latitude.toDouble(),
                     args.longitude.toDouble()
                 )
             )
         }
-        binding!!.clearFab.setOnClickListener {
+        binding.clearFab.setOnClickListener {
             val builder = AlertDialog.Builder(requireContext())
             builder.setTitle("Navigation")
             builder.setMessage(
@@ -98,24 +107,24 @@ class MapFragment : Fragment() {
             )
             builder.setIcon(android.R.drawable.ic_dialog_alert)
             builder.setPositiveButton("Yes") { _, _ ->
-                binding!!.clearFab.isClickable = false
-                binding!!.map.overlays.forEach {
+                binding.clearFab.isClickable = false
+                binding.map.overlays.forEach {
                     if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
-                        binding!!.map.overlays.remove(it)
+                        binding.map.overlays.remove(it)
                     }
                 }
-                binding!!.map.invalidate()
-                binding!!.clearFab.visibility = View.GONE
-                binding!!.clearFab.isClickable = true
-                binding!!.walkDirectionsActiveIv.visibility = View.GONE
-                binding!!.bikeDirectionsActiveIv.visibility = View.GONE
-                binding!!.carDirectionsActiveIv.visibility = View.GONE
+                binding.map.invalidate()
+                binding.clearFab.visibility = View.GONE
+                binding.clearFab.isClickable = true
+                binding.walkDirectionsActiveIv.visibility = View.GONE
+                binding.bikeDirectionsActiveIv.visibility = View.GONE
+                binding.carDirectionsActiveIv.visibility = View.GONE
             }
             builder.setNegativeButton("Cancel") { _, _ ->
             }.create()
             builder.show()
         }
-        binding!!.walkDirectionsFab.setOnClickListener {
+        binding.walkDirectionsFab.setOnClickListener {
             handleUIChange("byFoot")
             lifecycleScope.launch(context = Dispatchers.IO) {
                 val addRoute = async(Dispatchers.IO) {
@@ -128,7 +137,7 @@ class MapFragment : Fragment() {
             }
 
         }
-        binding!!.bikeDirectionsFab.setOnClickListener {
+        binding.bikeDirectionsFab.setOnClickListener {
             handleUIChange("byBike")
             lifecycleScope.launch(context = Dispatchers.IO) {
                 val addRoute = async(Dispatchers.IO) {
@@ -140,7 +149,7 @@ class MapFragment : Fragment() {
                 }
             }
         }
-        binding!!.carDirectionsFab.setOnClickListener {
+        binding.carDirectionsFab.setOnClickListener {
             handleUIChange("byCar")
             lifecycleScope.launch(context = Dispatchers.IO) {
                 val addRoute = async(Dispatchers.IO) {
@@ -158,36 +167,36 @@ class MapFragment : Fragment() {
         transportationType = newTransportationType
         when (newTransportationType) {
             "byFoot" -> {
-                binding!!.walkDirectionsActiveIv.visibility = View.VISIBLE
-                binding!!.bikeDirectionsActiveIv.visibility = View.GONE
-                binding!!.carDirectionsActiveIv.visibility = View.GONE
+                binding.walkDirectionsActiveIv.visibility = View.VISIBLE
+                binding.bikeDirectionsActiveIv.visibility = View.GONE
+                binding.carDirectionsActiveIv.visibility = View.GONE
             }
             "byBike" -> {
-                binding!!.walkDirectionsActiveIv.visibility = View.GONE
-                binding!!.bikeDirectionsActiveIv.visibility = View.VISIBLE
-                binding!!.carDirectionsActiveIv.visibility = View.GONE
+                binding.walkDirectionsActiveIv.visibility = View.GONE
+                binding.bikeDirectionsActiveIv.visibility = View.VISIBLE
+                binding.carDirectionsActiveIv.visibility = View.GONE
             }
             else -> {
-                binding!!.walkDirectionsActiveIv.visibility = View.GONE
-                binding!!.bikeDirectionsActiveIv.visibility = View.GONE
-                binding!!.carDirectionsActiveIv.visibility = View.VISIBLE
+                binding.walkDirectionsActiveIv.visibility = View.GONE
+                binding.bikeDirectionsActiveIv.visibility = View.GONE
+                binding.carDirectionsActiveIv.visibility = View.VISIBLE
             }
         }
-        binding!!.map.overlays.forEach {
+        binding.map.overlays.forEach {
             if ((it is Polyline && it.id == roadPolyline) || (it is Marker && it.id == roadPolylineMarker)) {
-                binding!!.map.overlays.remove(it)
+                binding.map.overlays.remove(it)
             }
         }
-        binding!!.walkDirectionsFab.isClickable = false
-        binding!!.bikeDirectionsFab.isClickable = false
-        binding!!.carDirectionsFab.isClickable = false
+        binding.walkDirectionsFab.isClickable = false
+        binding.bikeDirectionsFab.isClickable = false
+        binding.carDirectionsFab.isClickable = false
     }
 
     private fun setButtonState() {
-        binding!!.clearFab.visibility = View.VISIBLE
-        binding!!.walkDirectionsFab.isClickable = true
-        binding!!.bikeDirectionsFab.isClickable = true
-        binding!!.carDirectionsFab.isClickable = true
+        binding.clearFab.visibility = View.VISIBLE
+        binding.walkDirectionsFab.isClickable = true
+        binding.bikeDirectionsFab.isClickable = true
+        binding.carDirectionsFab.isClickable = true
     }
 
     private fun createRoadPolyLine() {
@@ -220,7 +229,7 @@ class MapFragment : Fragment() {
         // FIXME: fix deprecation
         roadOverlay.color = Color.BLUE
 
-        binding!!.map.overlays.add(roadOverlay)
+        binding.map.overlays.add(roadOverlay)
 
         createPolylineMarkers(road)
     }
@@ -228,7 +237,7 @@ class MapFragment : Fragment() {
     private fun createPolylineMarkers(road: Road) {
         for (i in road.mNodes.indices) {
             val node = road.mNodes[i]
-            val nodeMarker = Marker(binding!!.map)
+            val nodeMarker = Marker(binding.map)
             nodeMarker.id = roadPolylineMarker
             nodeMarker.icon = AppCompatResources.getDrawable(
                 requireContext(),
@@ -279,17 +288,17 @@ class MapFragment : Fragment() {
                     }
                 }
             }
-            binding!!.map.overlays.add(nodeMarker)
-            binding!!.map.invalidate()
+            binding.map.overlays.add(nodeMarker)
+            binding.map.invalidate()
         }
     }
 
     private fun setMap() {
-        binding!!.map.setTileSource(TileSourceFactory.MAPNIK)
-        binding!!.map.setMultiTouchControls(true)
-        binding!!.map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
-        binding!!.map.controller.setZoom(16.0)
-        binding!!.map.controller.setCenter(
+        binding.map.setTileSource(TileSourceFactory.MAPNIK)
+        binding.map.setMultiTouchControls(true)
+        binding.map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+        binding.map.controller.setZoom(16.0)
+        binding.map.controller.setCenter(
             GeoPoint(
                 args.latitude.toDouble(),
                 args.longitude.toDouble()
@@ -300,9 +309,9 @@ class MapFragment : Fragment() {
     private fun setMarkers() {
 
         // Own location marker is used in updating ownlocation but initilized here
-        ownLocationmarker = Marker(binding!!.map)
+        ownLocationmarker = Marker(binding.map)
 
-        locationmarker = Marker(binding!!.map).also { marker ->
+        locationmarker = Marker(binding.map).also { marker ->
             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
             marker.icon = AppCompatResources.getDrawable(
                 requireContext(),
@@ -319,14 +328,14 @@ class MapFragment : Fragment() {
             }
         }
 
-        binding!!.map.overlays.add(locationmarker)
+        binding.map.overlays.add(locationmarker)
     }
 
     private fun updateUserLocation(geoPoint: GeoPoint) {
 
-        binding!!.map.overlays.forEach {
+        binding.map.overlays.forEach {
             if (it is Marker && it.id == ownLocationId) {
-                binding!!.map.overlays.remove(it)
+                binding.map.overlays.remove(it)
             }
         }
         ownLocationmarker.let { marker ->
@@ -339,9 +348,9 @@ class MapFragment : Fragment() {
             marker.position = GeoPoint(geoPoint.latitude, geoPoint.longitude)
             marker.setInfoWindow(null)
         }
-        binding!!.map.overlays.add(ownLocationmarker)
+        binding.map.overlays.add(ownLocationmarker)
         //displays the ownLocationmarker as soon as it has been added.
-        binding!!.map.invalidate()
+        binding.map.invalidate()
     }
 
     private fun initLocationClientRequestAndCallback() {

@@ -19,9 +19,12 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.*
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import fi.lauriari.helsinkiapp.MainActivity
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
@@ -42,7 +45,7 @@ import retrofit2.Response
 class BrowseFragment : Fragment() {
 
     private lateinit var apiViewModel: HelsinkiApiViewModel
-    var binding: FragmentBrowseBinding? = null
+    lateinit var binding: FragmentBrowseBinding
 
     private lateinit var fusedLocationClient:
             FusedLocationProviderClient
@@ -55,21 +58,46 @@ class BrowseFragment : Fragment() {
     ): View {
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_browse, container, false)
-        val view = binding!!.root
-        initializeViewModelRepositoryBinding(binding!!)
-
+        val view = binding.root
+        initializeViewModelRepositoryBinding(binding)
+        initNavigation()
         initLocationClientRequestAndCallback()
 
         checkSelfPermissions()
 
         //setObservers()
 
-        binding?.recyclerview?.adapter?.stateRestorationPolicy =
+        binding.recyclerview.adapter?.stateRestorationPolicy =
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         setSpinner()
 
+
+
+
         return view
+    }
+
+    private fun initNavigation() {
+        (requireActivity() as MainActivity).findViewById<BottomNavigationView>(R.id.bottomNavigationView).visibility =
+            View.VISIBLE
+        (requireActivity() as MainActivity).findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+            .setOnItemSelectedListener {
+                when (it.itemId) {
+                    R.id.near_me -> {
+                        Toast.makeText(requireContext(), "You are here", Toast.LENGTH_SHORT).show()
+                    }
+                    R.id.search -> {
+                        findNavController().navigate(R.id.action_browseFragment_to_searchFragment)
+                    }
+                    R.id.favorites -> {
+                        findNavController().navigate(R.id.action_browseFragment_to_favoritesFragment)
+                    }
+
+                }
+                true
+
+            }
     }
 
     private fun initializeViewModelRepositoryBinding(binding: FragmentBrowseBinding) {
@@ -77,7 +105,7 @@ class BrowseFragment : Fragment() {
         val viewModelFactory = HelsinkiApiViewModelFactory(apiRepository)
         apiViewModel =
             ViewModelProvider(this, viewModelFactory).get(HelsinkiApiViewModel::class.java)
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = apiViewModel
     }
 
@@ -135,14 +163,14 @@ class BrowseFragment : Fragment() {
             spinnerArray
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            binding?.spinner?.adapter = adapter
+            binding.spinner.adapter = adapter
         }
-        binding?.spinner?.onItemSelectedListener = ItemsSpinner()
+        binding.spinner.onItemSelectedListener = ItemsSpinner()
     }
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful) {
-            binding?.recyclerview?.layoutManager =
+            binding.recyclerview.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
@@ -162,9 +190,9 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            binding?.recyclerview?.adapter =
+            binding.recyclerview.adapter =
                 ItemsAdapter(adapterList, requireContext())
-            binding?.progressBar?.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -173,7 +201,7 @@ class BrowseFragment : Fragment() {
 
     private fun handlePlacesResponse(response: Response<HelsinkiPlaces>) {
         if (response.isSuccessful) {
-            binding?.recyclerview?.layoutManager =
+            binding.recyclerview.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
@@ -193,9 +221,9 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            binding?.recyclerview?.adapter =
+            binding.recyclerview.adapter =
                 ItemsAdapter(adapterList, requireContext())
-            binding?.progressBar?.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -204,7 +232,7 @@ class BrowseFragment : Fragment() {
 
     private fun handleEventsResponse(response: Response<HelsinkiEvents>) {
         if (response.isSuccessful) {
-            binding?.recyclerview?.layoutManager =
+            binding.recyclerview.layoutManager =
                 LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
@@ -224,9 +252,9 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            binding?.recyclerview?.adapter =
+            binding.recyclerview.adapter =
                 ItemsAdapter(adapterList, requireContext())
-            binding?.progressBar?.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
             Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
@@ -320,10 +348,10 @@ class BrowseFragment : Fragment() {
                     "Activities" -> {
                         Log.d("response", "Activities spinner")
                         if (userLocation != null) {
-                            binding?.progressBar?.visibility = View.VISIBLE
+                            binding.progressBar.visibility = View.VISIBLE
                             lifecycleScope.launch(context = Dispatchers.IO) {
                                 val getActivities = async {
-                                    binding?.viewmodel?.getActivitiesNearby(
+                                    binding.viewmodel?.getActivitiesNearby(
                                         /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
@@ -342,10 +370,10 @@ class BrowseFragment : Fragment() {
                     "Places" -> {
                         Log.d("response", "Places spinner")
                         if (userLocation != null) {
-                            binding?.progressBar?.visibility = View.VISIBLE
+                            binding.progressBar.visibility = View.VISIBLE
                             lifecycleScope.launch(context = Dispatchers.IO) {
                                 val getPlaces = async {
-                                    binding?.viewmodel?.getPlacesNearby(
+                                    binding.viewmodel?.getPlacesNearby(
                                         /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5
@@ -364,10 +392,10 @@ class BrowseFragment : Fragment() {
                     "Events" -> {
                         Log.d("response", "Events spinner")
                         if (userLocation != null) {
-                            binding?.progressBar?.visibility = View.VISIBLE
+                            binding.progressBar.visibility = View.VISIBLE
                             lifecycleScope.launch(context = Dispatchers.IO) {
                                 val getEvents = async {
-                                    binding?.viewmodel?.getEventsNearby(
+                                    binding.viewmodel?.getEventsNearby(
                                         /*
                                 Triple(
                                     userLocation!!.latitude, userLocation!!.longitude, 0.5

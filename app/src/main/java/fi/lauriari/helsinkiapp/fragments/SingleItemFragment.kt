@@ -6,14 +6,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.models.SlideModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import fi.lauriari.helsinkiapp.MainActivity
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.databinding.FragmentSingleItemBinding
 import fi.lauriari.helsinkiapp.viewmodels.SingleItemViewModel
@@ -26,14 +26,15 @@ class SingleItemFragment : Fragment() {
 
     private val args by navArgs<SingleItemFragmentArgs>()
     private val singleItemViewModel: SingleItemViewModel by viewModels()
-    var binding: FragmentSingleItemBinding? = null
+    private lateinit var binding: FragmentSingleItemBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_single_item, container, false)
-        initializeBinding(binding!!)
+        initializeBinding(binding)
+        initNavigation()
 
         setImages()
 
@@ -43,11 +44,15 @@ class SingleItemFragment : Fragment() {
 
         setOnclickListeners()
 
-        return binding!!.root
+        return binding.root
+    }
+
+    private fun initNavigation() {
+        (requireActivity() as MainActivity).findViewById<BottomNavigationView>(R.id.bottomNavigationView).visibility = View.GONE
     }
 
     private fun setOnclickListeners() {
-        binding!!.openMapFab.setOnClickListener {
+        binding.openMapFab.setOnClickListener {
             val action = SingleItemFragmentDirections.actionSingleItemFragmentToMapFragment(
                 (args.helsinkiItem.latitude as Double).toFloat(),
                 (args.helsinkiItem.longitude as Double).toFloat(),
@@ -63,23 +68,23 @@ class SingleItemFragment : Fragment() {
             args.helsinkiItem.images!!.forEach {
                 imageList.add(SlideModel(it.url))
             }
-            binding!!.slider.setImageList(imageList, ScaleTypes.FIT)
+            binding.slider.setImageList(imageList, ScaleTypes.FIT)
         } else {
             val imageList = ArrayList<SlideModel>()
             imageList.add(SlideModel(R.drawable.image_not_available))
-            binding!!.slider.setImageList(imageList)
+            binding.slider.setImageList(imageList)
         }
     }
 
     private fun setBasicInformation() {
-        binding!!.nameTv.text = args.helsinkiItem.name
-        binding!!.nameTv.paintFlags = binding!!.nameTv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        binding!!.descriptionTv.text = args.helsinkiItem.description
-        "${args.helsinkiItem.locality}\n".also { binding!!.localityTv.text = it }
-        binding!!.infoUrlTv.text = args.helsinkiItem.infoUrl
-        binding!!.streetaddressTv.text = args.helsinkiItem.streetAddress
-        binding!!.streetaddressTv.paintFlags =
-            binding!!.streetaddressTv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        binding.nameTv.text = args.helsinkiItem.name
+        binding.nameTv.paintFlags = binding.nameTv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        binding.descriptionTv.text = args.helsinkiItem.description
+        "${args.helsinkiItem.locality}\n".also { binding.localityTv.text = it }
+        binding.infoUrlTv.text = args.helsinkiItem.infoUrl
+        binding.streetaddressTv.text = args.helsinkiItem.streetAddress
+        binding.streetaddressTv.paintFlags =
+            binding.streetaddressTv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
     }
 
     private fun setSpecificInformation() {
@@ -97,54 +102,54 @@ class SingleItemFragment : Fragment() {
     }
 
     private fun handleActivityItemSpecificInfo() {
-        binding!!.specificInfoTv.append("Where and when:\n")
+        binding.specificInfoTv.append("Where and when:\n")
         "${args.helsinkiItem.whereWhenDuration!!.where_and_when}\nDuration: ${args.helsinkiItem.whereWhenDuration!!.duration}".also {
-            binding!!.specificInfoTv.append(it)
+            binding.specificInfoTv.append(it)
         }
     }
 
     private fun handlePlaceItemSpecificInfo() {
-        binding!!.specificInfoTv.append("Opening hours:\n")
+        binding.specificInfoTv.append("Opening hours:\n")
         args.helsinkiItem.openingHours?.hours?.forEach {
             when (it.weekday_id) {
                 1 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Monday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
                 }
                 2 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Tuesday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
                 }
                 3 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Wednesday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
                 }
                 4 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Thursday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
                 }
                 5 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Friday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
                 }
                 6 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Saturday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
                 }
                 7 -> {
-                    binding!!.specificInfoTv.append(
+                    binding.specificInfoTv.append(
                         "Sunday: Opens: ${it.opens ?: "N/A"} Closes: ${it.closes ?: "N/A"} " +
                                 "${if (it.open24h == true) "Open24H" else ""}\n"
                     )
@@ -154,7 +159,7 @@ class SingleItemFragment : Fragment() {
     }
 
     private fun handleEventItemSpecificInfo() {
-        binding!!.specificInfoTv.append("Event times:\n")
+        binding.specificInfoTv.append("Event times:\n")
         val startTime = args.helsinkiItem.eventDates?.starting_day
         val endTime = args.helsinkiItem.eventDates?.ending_day
         val additionalDescription = args.helsinkiItem.eventDates?.additional_description
@@ -169,7 +174,7 @@ class SingleItemFragment : Fragment() {
                 dateEnd = dateFormat.parse(endTime)
             }
             "Start date: ${dateStart ?: "N/A"}\nEnd date: ${dateEnd ?: "N/A"}\n ${additionalDescription ?: ""}".also {
-                binding!!.specificInfoTv.append(it)
+                binding.specificInfoTv.append(it)
             }
         } catch (e: ParseException) {
         }
@@ -177,7 +182,7 @@ class SingleItemFragment : Fragment() {
     }
 
     private fun initializeBinding(binding: FragmentSingleItemBinding) {
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.singleItemViewmodel = singleItemViewModel
     }
 

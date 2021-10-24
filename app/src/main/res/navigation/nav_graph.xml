@@ -13,6 +13,15 @@
         <action
             android:id="@+id/action_browseFragment_to_singleItemFragment"
             app:destination="@id/singleItemFragment" />
+        <action
+            android:id="@+id/action_browseFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
+        <action
+            android:id="@+id/action_browseFragment_to_favoritesFragment"
+            app:destination="@id/favoritesFragment" />
+        <action
+            android:id="@+id/action_browseFragment_to_searchFragment2"
+            app:destination="@id/searchFragment" />
     </fragment>
     <fragment
         android:id="@+id/singleItemFragment"
@@ -43,12 +52,26 @@
     </fragment>
     <fragment
         android:id="@+id/favoritesFragment"
-        android:name="fi.lauriari.helsinkiapp.FavoritesFragment"
+        android:name="fi.lauriari.helsinkiapp.fragments.FavoritesFragment"
         android:label="fragment_favorites"
-        tools:layout="@layout/fragment_favorites" />
+        tools:layout="@layout/fragment_favorites" >
+        <action
+            android:id="@+id/action_favoritesFragment_to_browseFragment"
+            app:destination="@id/browseFragment" />
+        <action
+            android:id="@+id/action_favoritesFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
+    </fragment>
     <fragment
         android:id="@+id/searchFragment"
-        android:name="fi.lauriari.helsinkiapp.SearchFragment"
+        android:name="fi.lauriari.helsinkiapp.fragments.SearchFragment"
         android:label="fragment_search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search" >
+        <action
+            android:id="@+id/action_searchFragment_to_browseFragment"
+            app:destination="@id/browseFragment" />
+        <action
+            android:id="@+id/action_searchFragment_to_favoritesFragment"
+            app:destination="@id/favoritesFragment" />
+    </fragment>
 </navigation>

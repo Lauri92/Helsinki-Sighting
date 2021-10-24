@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
+import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationItemView
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         supportActionBar?.hide()
-
+/*
         findViewById<BottomNavigationView>(R.id.bottomNavigationView).setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.near_me -> {
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
-
+*/
 
     }
 
