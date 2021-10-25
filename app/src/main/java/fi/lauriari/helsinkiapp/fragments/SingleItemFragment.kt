@@ -63,7 +63,7 @@ class SingleItemFragment : Fragment() {
     }
 
     private fun setImages() {
-        if (args.helsinkiItem.images!!.isNotEmpty()) {
+        if (args.helsinkiItem.images?.isNotEmpty() == true) {
             val imageList = ArrayList<SlideModel>()
             args.helsinkiItem.images!!.forEach {
                 imageList.add(SlideModel(it.url))

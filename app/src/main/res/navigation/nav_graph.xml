@@ -21,7 +21,8 @@
             app:destination="@id/favoritesFragment" />
         <action
             android:id="@+id/action_browseFragment_to_searchFragment2"
-            app:destination="@id/searchFragment" />
+            app:destination="@id/searchFragment"
+            app:popUpTo="@id/browseFragment" />
     </fragment>
     <fragment
         android:id="@+id/singleItemFragment"
@@ -61,6 +62,9 @@
         <action
             android:id="@+id/action_favoritesFragment_to_searchFragment"
             app:destination="@id/searchFragment" />
+        <action
+            android:id="@+id/action_favoritesFragment_to_singleItemFragment"
+            app:destination="@id/singleItemFragment" />
     </fragment>
     <fragment
         android:id="@+id/searchFragment"
@@ -73,5 +77,8 @@
         <action
             android:id="@+id/action_searchFragment_to_favoritesFragment"
             app:destination="@id/favoritesFragment" />
+        <action
+            android:id="@+id/action_searchFragment_to_singleItemFragment"
+            app:destination="@id/singleItemFragment" />
     </fragment>
 </navigation>

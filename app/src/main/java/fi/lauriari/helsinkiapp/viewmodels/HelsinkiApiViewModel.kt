@@ -12,13 +12,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.Response
 
-class HelsinkiApiViewModel(private val helsinkiApiRepository: HelsinkiApiRepository) : ViewModel() {
+class HelsinkiApiViewModel : ViewModel() {
 
+    private val helsinkiApiRepository = HelsinkiApiRepository()
 
-    fun getActivities(tag: String, language: String) {
-        viewModelScope.launch {
-            val apiResponse = helsinkiApiRepository.getActivities(tag, language)
+    fun getActivities(tag: String, language: String): Response<HelsinkiActivities> {
+        var apiResponse: Response<HelsinkiActivities>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getActivities(tag, language)
         }
+        return apiResponse
     }
 
     fun getActivitiesNearby(

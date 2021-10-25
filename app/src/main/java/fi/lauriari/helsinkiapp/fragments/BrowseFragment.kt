@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -27,10 +28,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import fi.lauriari.helsinkiapp.MainActivity
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
+import fi.lauriari.helsinkiapp.adapters.SearchAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentBrowseBinding
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
-import fi.lauriari.helsinkiapp.viewmodelfactories.HelsinkiApiViewModelFactory
+//import fi.lauriari.helsinkiapp.viewmodelfactories.HelsinkiApiViewModelFactory
 import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
@@ -44,14 +46,16 @@ import retrofit2.Response
 
 class BrowseFragment : Fragment() {
 
-    private lateinit var apiViewModel: HelsinkiApiViewModel
-    lateinit var binding: FragmentBrowseBinding
-
+    private lateinit var binding: FragmentBrowseBinding
+    private lateinit var layoutManager: LinearLayoutManager
+    private val apiViewModel: HelsinkiApiViewModel by viewModels()
+    private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter() }
     private lateinit var fusedLocationClient:
             FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
     private var userLocation: GeoPoint? = null
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -62,19 +66,8 @@ class BrowseFragment : Fragment() {
         initializeViewModelRepositoryBinding(binding)
         initNavigation()
         initLocationClientRequestAndCallback()
-
+        initSetOnClickListeners()
         checkSelfPermissions()
-
-        //setObservers()
-
-        binding.recyclerview.adapter?.stateRestorationPolicy =
-            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-
-        setSpinner()
-
-
-
-
         return view
     }
 
@@ -100,13 +93,97 @@ class BrowseFragment : Fragment() {
             }
     }
 
+    private fun disableActivateButtons() {
+        binding.activitiesButton.isClickable = !binding.activitiesButton.isClickable
+        binding.placesButton.isClickable = !binding.placesButton.isClickable
+        binding.eventsButton.isClickable = !binding.eventsButton.isClickable
+    }
+
+    private fun initSetOnClickListeners() {
+        binding.activitiesButton.setOnClickListener {
+            if (userLocation != null) {
+                disableActivateButtons()
+                binding.progressBar.visibility = View.VISIBLE
+                lifecycleScope.launch(context = Dispatchers.IO) {
+                    val getActivities = async {
+                        binding.viewmodel?.getActivitiesNearby(
+                            /*
+                    Triple(
+                        userLocation!!.latitude, userLocation!!.longitude, 0.5
+                    ),*/Triple(60.1700713, 24.9532164, 0.5),
+                            "en"
+                        )
+                    }
+                    getActivities.await()?.let {
+                        activity?.runOnUiThread {
+                            handleActivitiesResponse(it)
+                            layoutManager.scrollToPositionWithOffset(0, 0)
+                            disableActivateButtons()
+                        }
+                    }
+                }
+
+            }
+        }
+        binding.placesButton.setOnClickListener {
+            if (userLocation != null) {
+                disableActivateButtons()
+                binding.progressBar.visibility = View.VISIBLE
+                lifecycleScope.launch(context = Dispatchers.IO) {
+                    val getPlaces = async {
+                        binding.viewmodel?.getPlacesNearby(
+                            /*
+                    Triple(
+                        userLocation!!.latitude, userLocation!!.longitude, 0.5
+                    ),*/Triple(60.1700713, 24.9532164, 0.5),
+                            "en"
+                        )
+                    }
+                    getPlaces.await()?.let {
+                        activity?.runOnUiThread {
+                            handlePlacesResponse(it)
+                            layoutManager.scrollToPositionWithOffset(0, 0)
+                            disableActivateButtons()
+                        }
+                    }
+                }
+
+            }
+        }
+        binding.eventsButton.setOnClickListener {
+            if (userLocation != null) {
+                disableActivateButtons()
+                binding.progressBar.visibility = View.VISIBLE
+                lifecycleScope.launch(context = Dispatchers.IO) {
+                    val getEvents = async {
+                        binding.viewmodel?.getEventsNearby(
+                            /*
+                    Triple(
+                        userLocation!!.latitude, userLocation!!.longitude, 0.5
+                    ),*/Triple(60.1700713, 24.9532164, 0.5),
+                            "en"
+                        )
+                    }
+                    getEvents.await()?.let {
+                        activity?.runOnUiThread {
+                            handleEventsResponse(it)
+                            layoutManager.scrollToPositionWithOffset(0, 0)
+                            disableActivateButtons()
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
+
     private fun initializeViewModelRepositoryBinding(binding: FragmentBrowseBinding) {
-        val apiRepository = HelsinkiApiRepository()
-        val viewModelFactory = HelsinkiApiViewModelFactory(apiRepository)
-        apiViewModel =
-            ViewModelProvider(this, viewModelFactory).get(HelsinkiApiViewModel::class.java)
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = apiViewModel
+        layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerview.layoutManager = layoutManager
+        binding.recyclerview.adapter = itemsAdapter
     }
 
     private fun initLocationClientRequestAndCallback() {
@@ -154,24 +231,9 @@ class BrowseFragment : Fragment() {
 
      */
 
-    private fun setSpinner() {
-        val spinnerArray = listOf("Select", "Activities", "Places", "Events")
-
-        ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            spinnerArray
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            binding.spinner.adapter = adapter
-        }
-        binding.spinner.onItemSelectedListener = ItemsSpinner()
-    }
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful) {
-            binding.recyclerview.layoutManager =
-                LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
                 adapterList.add(
@@ -190,8 +252,7 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            binding.recyclerview.adapter =
-                ItemsAdapter(adapterList, requireContext())
+            itemsAdapter.setData(adapterList)
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
@@ -201,8 +262,6 @@ class BrowseFragment : Fragment() {
 
     private fun handlePlacesResponse(response: Response<HelsinkiPlaces>) {
         if (response.isSuccessful) {
-            binding.recyclerview.layoutManager =
-                LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
                 adapterList.add(
@@ -221,8 +280,7 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            binding.recyclerview.adapter =
-                ItemsAdapter(adapterList, requireContext())
+            itemsAdapter.setData(adapterList)
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
@@ -232,8 +290,6 @@ class BrowseFragment : Fragment() {
 
     private fun handleEventsResponse(response: Response<HelsinkiEvents>) {
         if (response.isSuccessful) {
-            binding.recyclerview.layoutManager =
-                LinearLayoutManager(requireContext())
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
                 adapterList.add(
@@ -252,8 +308,7 @@ class BrowseFragment : Fragment() {
                     )
                 )
             }
-            binding.recyclerview.adapter =
-                ItemsAdapter(adapterList, requireContext())
+            itemsAdapter.setData(adapterList)
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
@@ -338,89 +393,6 @@ class BrowseFragment : Fragment() {
         Log.d("destroy", "onDestroyView called")
         super.onDestroyView()
         fusedLocationClient.removeLocationUpdates(locationCallback)
-    }
-
-    inner class ItemsSpinner : Fragment(), AdapterView.OnItemSelectedListener {
-
-        override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
-            if (view != null) {
-                when (parent.getItemAtPosition(pos).toString()) {
-                    "Activities" -> {
-                        Log.d("response", "Activities spinner")
-                        if (userLocation != null) {
-                            binding.progressBar.visibility = View.VISIBLE
-                            lifecycleScope.launch(context = Dispatchers.IO) {
-                                val getActivities = async {
-                                    binding.viewmodel?.getActivitiesNearby(
-                                        /*
-                                Triple(
-                                    userLocation!!.latitude, userLocation!!.longitude, 0.5
-                                ),*/Triple(60.1700713, 24.9532164, 0.5),
-                                        "en"
-                                    )
-                                }
-                                getActivities.await()?.let {
-                                    lifecycleScope.launch(context = Dispatchers.Main) {
-                                        handleActivitiesResponse(it)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    "Places" -> {
-                        Log.d("response", "Places spinner")
-                        if (userLocation != null) {
-                            binding.progressBar.visibility = View.VISIBLE
-                            lifecycleScope.launch(context = Dispatchers.IO) {
-                                val getPlaces = async {
-                                    binding.viewmodel?.getPlacesNearby(
-                                        /*
-                                Triple(
-                                    userLocation!!.latitude, userLocation!!.longitude, 0.5
-                                ),*/Triple(60.1700713, 24.9532164, 0.5),
-                                        "en"
-                                    )
-                                }
-                                getPlaces.await()?.let {
-                                    lifecycleScope.launch(context = Dispatchers.Main) {
-                                        handlePlacesResponse(it)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    "Events" -> {
-                        Log.d("response", "Events spinner")
-                        if (userLocation != null) {
-                            binding.progressBar.visibility = View.VISIBLE
-                            lifecycleScope.launch(context = Dispatchers.IO) {
-                                val getEvents = async {
-                                    binding.viewmodel?.getEventsNearby(
-                                        /*
-                                Triple(
-                                    userLocation!!.latitude, userLocation!!.longitude, 0.5
-                                ),*/Triple(60.1700713, 24.9532164, 0.5),
-                                        "en"
-                                    )
-                                }
-                                getEvents.await()?.let {
-                                    lifecycleScope.launch(context = Dispatchers.Main) {
-                                        handleEventsResponse(it)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    "Select" -> {
-                        Log.d("location", "User location: $userLocation")
-                    }
-                }
-            }
-        }
-
-        override fun onNothingSelected(parent: AdapterView<*>) {
-            // Another interface callback
-        }
     }
 
     companion object {

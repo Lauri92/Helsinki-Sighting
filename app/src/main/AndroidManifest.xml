@@ -19,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HelsinkiApp">
         <activity
+            android:windowSoftInputMode="adjustPan"
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
