@@ -15,7 +15,6 @@ import fi.lauriari.helsinkiapp.fragments.SearchFragmentDirections
 
 class SearchAdapter() : RecyclerView.Adapter<SearchAdapter.MyViewHolder>() {
 
-
     private var itemsList = emptyList<SingleHelsinkiItem>()
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
@@ -35,6 +34,9 @@ class SearchAdapter() : RecyclerView.Adapter<SearchAdapter.MyViewHolder>() {
 
         nameTv.text = item.name
         localityTv.text = item.locality
+
+        thumbnailIv.setImageDrawable(null)
+        tagsTv.text = "Tags: "
 
         item.tags?.forEach {
             if (it == item.tags!![0]) {

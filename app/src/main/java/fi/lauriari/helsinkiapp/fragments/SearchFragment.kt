@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import fi.lauriari.helsinkiapp.MainActivity
 import fi.lauriari.helsinkiapp.R
+import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.adapters.SearchAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentSearchBinding
@@ -23,13 +24,19 @@ import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import android.app.Activity
+
+import android.view.inputmethod.InputMethodManager
+
+
+
 
 
 class SearchFragment : Fragment() {
 
     lateinit var binding: FragmentSearchBinding
     private val apiViewModel: HelsinkiApiViewModel by viewModels()
-    private val searchAdapter: SearchAdapter by lazy { SearchAdapter() }
+    private val searchAdapter: ItemsAdapter by lazy { ItemsAdapter("searchFragment") }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,35 +61,55 @@ class SearchFragment : Fragment() {
         binding.searchview.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query ?: return false
+
+                val imm =
+                    activity!!.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                var view = activity!!.currentFocus
+                if (view == null) {
+                    view = View(activity)
+                }
+                imm.hideSoftInputFromWindow(view.windowToken, 0)
+
+                val adapterList = mutableListOf<SingleHelsinkiItem>()
                 lifecycleScope.launch(Dispatchers.IO) {
                     val getActivities = async {
                         apiViewModel.getActivities(query, "en")
                     }
                     getActivities.await().let {
-                        if (it.isSuccessful) {
-                            val adapterList = mutableListOf<SingleHelsinkiItem>()
-                            it.body()?.data?.forEach { info ->
-                                adapterList.add(
-                                    SingleHelsinkiItem(
-                                        id = info.id,
-                                        name = info.name.en,
-                                        infoUrl = info.info_url,
-                                        latitude = info.location.lat,
-                                        longitude = info.location.lon,
-                                        streetAddress = info.location.address.street_address,
-                                        locality = info.location.address.locality,
-                                        description = info.description.body,
-                                        images = info.description.images,
-                                        tags = info.tags,
-                                        whereWhenDuration = info.where_when_duration
+                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                            val createList = async {
+                                it.body()?.data?.forEach { info ->
+                                    adapterList.add(
+                                        SingleHelsinkiItem(
+                                            id = info.id,
+                                            name = info.name.en,
+                                            infoUrl = info.info_url,
+                                            latitude = info.location.lat,
+                                            longitude = info.location.lon,
+                                            streetAddress = info.location.address.street_address,
+                                            locality = info.location.address.locality,
+                                            description = info.description.body,
+                                            images = info.description.images,
+                                            tags = info.tags,
+                                            whereWhenDuration = info.where_when_duration
+                                        )
                                     )
-                                )
-                                activity?.runOnUiThread {
-                                    searchAdapter.setData(adapterList)
                                 }
                             }
+                            createList.await()
+                            activity?.runOnUiThread {
+                                searchAdapter.setData(adapterList)
+                                binding.recyclerview.visibility = View.VISIBLE
+                            }
                         } else {
-                            Log.d("data", "fail")
+                            activity?.runOnUiThread {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Nothing was found!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.recyclerview.visibility = View.GONE
+                            }
                         }
                     }
                 }
@@ -90,6 +117,12 @@ class SearchFragment : Fragment() {
             }
 
             override fun onQueryTextChange(query: String?): Boolean {
+                query ?: return false
+
+                if (query == "") {
+                    binding.recyclerview.visibility = View.GONE
+                }
+
                 return true
             }
         })
@@ -97,6 +130,8 @@ class SearchFragment : Fragment() {
     }
 
     private fun initNavigation() {
+        (requireActivity() as MainActivity).findViewById<BottomNavigationView>(R.id.bottomNavigationView).visibility =
+            View.VISIBLE
         (requireActivity() as MainActivity).findViewById<BottomNavigationView>(R.id.bottomNavigationView)
             .setOnItemSelectedListener {
                 when (it.itemId) {

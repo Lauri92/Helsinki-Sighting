@@ -49,7 +49,7 @@ class BrowseFragment : Fragment() {
     private lateinit var binding: FragmentBrowseBinding
     private lateinit var layoutManager: LinearLayoutManager
     private val apiViewModel: HelsinkiApiViewModel by viewModels()
-    private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter() }
+    private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter("browseFragment") }
     private lateinit var fusedLocationClient:
             FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback

@@ -1,8 +1,7 @@
 package fi.lauriari.helsinkiapp.adapters
 
-import android.content.Context
-import android.os.FileUtils
 import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,15 +10,15 @@ import androidx.recyclerview.widget.RecyclerView
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import android.widget.ImageView
-import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.bumptech.glide.Glide
 import fi.lauriari.helsinkiapp.fragments.BrowseFragmentDirections
+import fi.lauriari.helsinkiapp.fragments.SearchFragmentDirections
 
-
-class ItemsAdapter() : RecyclerView.Adapter<ItemsAdapter.MyViewHolder>() {
+class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHolder>() {
 
     private var itemsList = emptyList<SingleHelsinkiItem>()
+    private val source: String = source
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
@@ -68,9 +67,16 @@ class ItemsAdapter() : RecyclerView.Adapter<ItemsAdapter.MyViewHolder>() {
         }
 
         holder.itemView.setOnClickListener {
-            val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
-            holder.itemView.findNavController()
-                .navigate(action)
+
+            if (source == "browseFragment") {
+                val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
+                holder.itemView.findNavController()
+                    .navigate(action)
+            } else if(source == "searchFragment") {
+                val action = SearchFragmentDirections.actionSearchFragmentToSingleItemFragment(item)
+                holder.itemView.findNavController()
+                    .navigate(action)
+            }
         }
     }
 
