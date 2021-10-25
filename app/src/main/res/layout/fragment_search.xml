@@ -5,6 +5,7 @@
     tools:context=".fragments.SearchFragment">
 
     <data>
+
         <variable
             name="viewmodel"
             type="fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel" />
@@ -37,6 +38,127 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/searchview"
             app:layout_constraintVertical_bias="0.253" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/buttons_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/searchview">
+
+            <Button
+                android:id="@+id/preset_button1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="48dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/preset_button2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@+id/preset_button1"
+                app:layout_constraintStart_toEndOf="@+id/preset_button1"
+                app:layout_constraintTop_toTopOf="@+id/preset_button1" />
+
+            <Button
+                android:id="@+id/preset_button3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@+id/preset_button2"
+                app:layout_constraintStart_toEndOf="@+id/preset_button2"
+                app:layout_constraintTop_toTopOf="@+id/preset_button2" />
+
+            <Button
+                android:id="@+id/preset_button4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toEndOf="@+id/preset_button1"
+                app:layout_constraintStart_toStartOf="@+id/preset_button1"
+                app:layout_constraintTop_toBottomOf="@+id/preset_button1" />
+
+            <Button
+                android:id="@+id/preset_button5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@+id/preset_button4"
+                app:layout_constraintStart_toEndOf="@+id/preset_button4"
+                app:layout_constraintTop_toTopOf="@+id/preset_button4" />
+
+            <Button
+                android:id="@+id/preset_button7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toEndOf="@+id/preset_button4"
+                app:layout_constraintStart_toStartOf="@+id/preset_button4"
+                app:layout_constraintTop_toBottomOf="@+id/preset_button4" />
+
+            <Button
+                android:id="@+id/preset_button8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@+id/preset_button7"
+                app:layout_constraintStart_toEndOf="@+id/preset_button7"
+                app:layout_constraintTop_toTopOf="@+id/preset_button7"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <Button
+                android:id="@+id/preset_button9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@+id/preset_button8"
+                app:layout_constraintStart_toEndOf="@+id/preset_button8"
+                app:layout_constraintTop_toTopOf="@+id/preset_button8"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <Button
+                android:id="@+id/preset_button6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@+id/preset_button5"
+                app:layout_constraintStart_toEndOf="@+id/preset_button5"
+                app:layout_constraintTop_toTopOf="@+id/preset_button5" />
+
+            <Button
+                android:id="@+id/preset_button10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Button"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toEndOf="@+id/preset_button8"
+                app:layout_constraintStart_toStartOf="@+id/preset_button8"
+                app:layout_constraintTop_toBottomOf="@+id/preset_button8" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
