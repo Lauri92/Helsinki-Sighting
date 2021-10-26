@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
+import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiActivity
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -81,4 +82,13 @@ class HelsinkiApiViewModel : ViewModel() {
         }
         return apiResponse
     }
+
+    fun getActivityById(id: String, languageFilter: String): Response<SingleHelsinkiActivity> {
+        var apiResponse: Response<SingleHelsinkiActivity>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getActivityById(id, languageFilter)
+        }
+        return apiResponse
+    }
+
 }

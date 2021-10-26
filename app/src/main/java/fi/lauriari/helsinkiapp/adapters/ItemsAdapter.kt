@@ -13,6 +13,7 @@ import android.widget.ImageView
 import androidx.navigation.findNavController
 import com.bumptech.glide.Glide
 import fi.lauriari.helsinkiapp.fragments.BrowseFragmentDirections
+import fi.lauriari.helsinkiapp.fragments.FavoritesFragmentDirections
 import fi.lauriari.helsinkiapp.fragments.SearchFragmentDirections
 
 class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHolder>() {
@@ -68,14 +69,23 @@ class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHol
 
         holder.itemView.setOnClickListener {
 
-            if (source == "browseFragment") {
-                val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
-                holder.itemView.findNavController()
-                    .navigate(action)
-            } else if (source == "searchFragment") {
-                val action = SearchFragmentDirections.actionSearchFragmentToSingleItemFragment(item)
-                holder.itemView.findNavController()
-                    .navigate(action)
+            when (source) {
+                "browseFragment" -> {
+                    val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
+                    holder.itemView.findNavController()
+                        .navigate(action)
+                }
+                "searchFragment" -> {
+                    val action = SearchFragmentDirections.actionSearchFragmentToSingleItemFragment(item)
+                    holder.itemView.findNavController()
+                        .navigate(action)
+                }
+                "favoritesFragment" -> {
+                    val action =
+                        FavoritesFragmentDirections.actionFavoritesFragmentToSingleItemFragment(item)
+                    holder.itemView.findNavController()
+                        .navigate(action)
+                }
             }
         }
     }

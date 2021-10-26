@@ -58,6 +58,18 @@ data class EventsData(
     @SerializedName("event_dates") val event_dates: Event_dates
 )
 
+data class SingleHelsinkiActivity(
+    @SerializedName("id") val id : String?,
+    @SerializedName("name") val name : Name,
+    @SerializedName("source_type") val source_type : Source_type,
+    @SerializedName("info_url") val info_url : String,
+    @SerializedName("modified_at") val modified_at : String,
+    @SerializedName("location") val location : Location,
+    @SerializedName("description") val description : Description,
+    @SerializedName("tags") val tags : List<Tag>,
+    @SerializedName("where_when_duration") val where_when_duration : Where_when_duration
+)
+
 @Parcelize
 data class Hours(
     @SerializedName("weekday_id") val weekday_id: Int,

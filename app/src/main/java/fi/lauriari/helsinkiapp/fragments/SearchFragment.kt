@@ -30,7 +30,7 @@ class SearchFragment : Fragment() {
 
     lateinit var binding: FragmentSearchBinding
     private val apiViewModel: HelsinkiApiViewModel by viewModels()
-    private val searchAdapter: ItemsAdapter by lazy { ItemsAdapter("searchFragment") }
+    private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter("searchFragment") }
     private lateinit var layoutManager: LinearLayoutManager
     private var spinnerValue = "Activities"
     private var firstLoad: Boolean = true
@@ -42,17 +42,11 @@ class SearchFragment : Fragment() {
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_search, container, false)
         val view = binding.root
-        initializeViewModelRepositoryBinding(binding)
+        initializeComponents(binding)
         initNavigation()
         initSearchViewQueryTextListener()
         setButtons()
         setSpinner()
-
-        layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerview.layoutManager = layoutManager
-        binding.recyclerview.adapter = searchAdapter
-
-
         return view
     }
 
@@ -100,10 +94,13 @@ class SearchFragment : Fragment() {
             }
     }
 
-    private fun initializeViewModelRepositoryBinding(binding: FragmentSearchBinding) {
+    private fun initializeComponents(binding: FragmentSearchBinding) {
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = apiViewModel
-        Log.d("firstload", firstLoad.toString())
+        layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerview.layoutManager = layoutManager
+        binding.recyclerview.adapter = itemsAdapter
+
         if (firstLoad) {
             binding.recyclerview.visibility = View.GONE
             binding.buttonsContainer.visibility = View.VISIBLE
@@ -232,7 +229,7 @@ class SearchFragment : Fragment() {
                     }
                     createList.await()
                     activity?.runOnUiThread {
-                        searchAdapter.setData(adapterList)
+                        itemsAdapter.setData(adapterList)
                         binding.buttonsContainer.visibility = View.GONE
                         binding.recyclerview.visibility = View.VISIBLE
                     }
@@ -281,7 +278,7 @@ class SearchFragment : Fragment() {
                     }
                     createList.await()
                     activity?.runOnUiThread {
-                        searchAdapter.setData(adapterList)
+                        itemsAdapter.setData(adapterList)
                         binding.buttonsContainer.visibility = View.GONE
                         binding.recyclerview.visibility = View.VISIBLE
                     }
@@ -330,7 +327,7 @@ class SearchFragment : Fragment() {
                     }
                     createList.await()
                     activity?.runOnUiThread {
-                        searchAdapter.setData(adapterList)
+                        itemsAdapter.setData(adapterList)
                         binding.buttonsContainer.visibility = View.GONE
                         binding.recyclerview.visibility = View.VISIBLE
                     }

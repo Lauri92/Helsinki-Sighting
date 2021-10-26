@@ -4,6 +4,7 @@ import android.util.Log
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
+import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiActivity
 import fi.lauriari.helsinkiapp.network.HelsinkiApiRetrofitInstance
 import retrofit2.Response
 
@@ -54,5 +55,11 @@ class HelsinkiApiRepository {
         )
     }
 
+    suspend fun getActivityById(
+        id: String,
+        languageFilter: String
+    ): Response<SingleHelsinkiActivity> {
+        return HelsinkiApiRetrofitInstance.api.getActivityById(id, languageFilter)
+    }
 
 }
