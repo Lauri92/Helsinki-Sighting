@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.denzcoskun.imageslider.constants.ScaleTypes
@@ -18,7 +20,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import fi.lauriari.helsinkiapp.MainActivity
 import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.databinding.FragmentSingleItemBinding
+import fi.lauriari.helsinkiapp.entities.Favorite
+import fi.lauriari.helsinkiapp.viewmodels.FavoriteViewModel
 import fi.lauriari.helsinkiapp.viewmodels.SingleItemViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,6 +35,7 @@ class SingleItemFragment : Fragment() {
 
     private val args by navArgs<SingleItemFragmentArgs>()
     private val singleItemViewModel: SingleItemViewModel by viewModels()
+    private val favoriteViewModel: FavoriteViewModel by viewModels()
     private lateinit var binding: FragmentSingleItemBinding
 
     override fun onCreateView(
@@ -56,7 +64,6 @@ class SingleItemFragment : Fragment() {
 
     private fun setOnclickListeners() {
         binding.openMapFab.setOnClickListener {
-
             if (args.helsinkiItem.latitude!! < 90 && args.helsinkiItem.latitude!! > -90 &&
                 args.helsinkiItem.longitude!! < 180 && args.helsinkiItem.longitude!! > -180
             ) {
@@ -67,7 +74,73 @@ class SingleItemFragment : Fragment() {
                 )
                 findNavController().navigate(action)
             } else {
-                Toast.makeText(requireContext(), "No location available\nCheck website for further details", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "No location available\nCheck website for further details",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        val list = favoriteViewModel.getFavoriteList()
+        list.filter {
+            it.itemApiId == args.helsinkiItem.id
+        }.let {
+            if(it.isEmpty()) {
+                createInsertListener()
+            } else {
+                createDeleteListener(it)
+            }
+        }
+    }
+
+    private fun createInsertListener() {
+        binding.addFavoritesFab.let { fab ->
+            fab.isClickable = true
+            fab.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_baseline_favorite_24
+                )
+            )
+            fab.setOnClickListener {
+                fab.isClickable = false
+                lifecycleScope.launch(Dispatchers.Main) {
+                    val insertFavorite = async {
+                        favoriteViewModel.insertFavorite(
+                            Favorite(
+                                id = 0,
+                                itemType = args.helsinkiItem.itemType,
+                                itemApiId = args.helsinkiItem.id.toString(),
+                            )
+                        )
+                    }
+                    insertFavorite.await()
+                    setOnclickListeners()
+                }
+            }
+        }
+    }
+
+    private fun createDeleteListener(isFavorited: List<Favorite>) {
+        binding.addFavoritesFab.let { fab ->
+            fab.isClickable = true
+            fab.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_baseline_remove_circle_24
+                )
+            )
+            fab.setOnClickListener {
+                fab.isClickable = false
+                lifecycleScope.launch(Dispatchers.Main) {
+
+                    val deleteFavorite = async {
+                        favoriteViewModel.deleteFavorite(isFavorited[0].id)
+                    }
+                    deleteFavorite.join()
+                    setOnclickListeners()
+                }
             }
         }
     }
