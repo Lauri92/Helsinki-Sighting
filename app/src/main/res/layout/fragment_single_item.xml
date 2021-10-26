@@ -109,6 +109,17 @@
                         tools:text="TextView" />
 
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/add_favorites_fab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:clickable="true"
+                        android:src="@drawable/ic_baseline_favorite_24"
+                        app:backgroundTint="@color/white"
+                        app:layout_constraintEnd_toStartOf="@+id/open_map_fab"
+                        app:tint="@color/red" />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/open_map_fab"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

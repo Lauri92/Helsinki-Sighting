@@ -19,5 +19,6 @@ data class SingleHelsinkiItem(
     var tags: List<Tag>?,
     var whereWhenDuration: Where_when_duration? = null, //not null for activities
     var openingHours: Opening_hours? = null,            //not null for places
-    var eventDates: Event_dates? = null                 //not null for events
+    var eventDates: Event_dates? = null,                 //not null for events
+    var itemType: String
 ) : Parcelable

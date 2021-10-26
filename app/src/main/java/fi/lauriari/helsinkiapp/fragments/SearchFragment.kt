@@ -22,10 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import android.app.Activity
-
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
-import androidx.core.view.forEach
 import androidx.core.view.forEachIndexed
 
 class SearchFragment : Fragment() {
@@ -151,7 +149,8 @@ class SearchFragment : Fragment() {
                                             description = info.description.body,
                                             images = info.description.images,
                                             tags = info.tags,
-                                            whereWhenDuration = info.where_when_duration
+                                            whereWhenDuration = info.where_when_duration,
+                                            itemType = info.source_type.name
                                         )
                                     )
                                 }
@@ -197,7 +196,8 @@ class SearchFragment : Fragment() {
                                             description = info.description.body,
                                             images = info.description.images,
                                             tags = info.tags,
-                                            openingHours = info.opening_hours
+                                            openingHours = info.opening_hours,
+                                            itemType = info.source_type.name
                                         )
                                     )
                                 }
@@ -243,7 +243,8 @@ class SearchFragment : Fragment() {
                                             description = info.description.body,
                                             images = info.description.images,
                                             tags = info.tags,
-                                            eventDates = info.event_dates
+                                            eventDates = info.event_dates,
+                                            itemType = info.source_type.name
                                         )
                                     )
                                 }

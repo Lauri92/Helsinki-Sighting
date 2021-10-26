@@ -248,7 +248,8 @@ class BrowseFragment : Fragment() {
                         description = it.description.body,
                         images = it.description.images,
                         tags = it.tags,
-                        whereWhenDuration = it.where_when_duration
+                        whereWhenDuration = it.where_when_duration,
+                        itemType = it.source_type.name
                     )
                 )
             }
@@ -276,7 +277,8 @@ class BrowseFragment : Fragment() {
                         description = it.description.body,
                         images = it.description.images,
                         tags = it.tags,
-                        openingHours = it.opening_hours
+                        openingHours = it.opening_hours,
+                        itemType = it.source_type.name
                     )
                 )
             }
@@ -304,7 +306,8 @@ class BrowseFragment : Fragment() {
                         description = it.description.body,
                         images = it.description.images,
                         tags = it.tags,
-                        eventDates = it.event_dates
+                        eventDates = it.event_dates,
+                        itemType = it.source_type.name
                     )
                 )
             }

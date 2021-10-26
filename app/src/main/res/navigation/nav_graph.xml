@@ -19,10 +19,6 @@
         <action
             android:id="@+id/action_browseFragment_to_favoritesFragment"
             app:destination="@id/favoritesFragment" />
-        <action
-            android:id="@+id/action_browseFragment_to_searchFragment2"
-            app:destination="@id/searchFragment"
-            app:popUpTo="@id/browseFragment" />
     </fragment>
     <fragment
         android:id="@+id/singleItemFragment"

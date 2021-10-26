@@ -39,7 +39,7 @@ class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHol
         val tagsTv = holder.itemView.findViewById<TextView>(R.id.tags_tv)
         val thumbnailIv = holder.itemView.findViewById<ImageView>(R.id.thumbnail_iv)
 
-        nameTv.text = item.name
+        nameTv.text = if (item.name != "") item.name else "No name provided"
         localityTv.text = item.locality
 
         thumbnailIv.setImageDrawable(null)
@@ -72,7 +72,7 @@ class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHol
                 val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
                 holder.itemView.findNavController()
                     .navigate(action)
-            } else if(source == "searchFragment") {
+            } else if (source == "searchFragment") {
                 val action = SearchFragmentDirections.actionSearchFragmentToSingleItemFragment(item)
                 holder.itemView.findNavController()
                     .navigate(action)
