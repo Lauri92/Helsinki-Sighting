@@ -13,6 +13,14 @@ class HelsinkiApiRepository {
         return HelsinkiApiRetrofitInstance.api.getActivities(tag, language)
     }
 
+    suspend fun getPlaces(tag: String, language: String): Response<HelsinkiPlaces> {
+        return HelsinkiApiRetrofitInstance.api.getPlaces(tag, language)
+    }
+
+    suspend fun getEvents(tag: String, language: String): Response<HelsinkiEvents> {
+        return HelsinkiApiRetrofitInstance.api.getEvents(tag, language)
+    }
+
     suspend fun getActivitiesNearby(
         triple: Triple<Double, Double, Double>,
         languageFilter: String

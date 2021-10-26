@@ -24,6 +24,22 @@ class HelsinkiApiViewModel : ViewModel() {
         return apiResponse
     }
 
+    fun getPlaces(tag: String, language: String): Response<HelsinkiPlaces> {
+        var apiResponse: Response<HelsinkiPlaces>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getPlaces(tag, language)
+        }
+        return apiResponse
+    }
+
+    fun getEvents(tag: String, language: String): Response<HelsinkiEvents> {
+        var apiResponse: Response<HelsinkiEvents>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getEvents(tag, language)
+        }
+        return apiResponse
+    }
+
     fun getActivitiesNearby(
         triple: Triple<Double, Double, Double>,
         languageFilter: String,

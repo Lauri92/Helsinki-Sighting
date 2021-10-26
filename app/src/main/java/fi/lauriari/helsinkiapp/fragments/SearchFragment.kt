@@ -6,8 +6,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +24,7 @@ import kotlinx.coroutines.launch
 import android.app.Activity
 
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
+import android.widget.*
 import androidx.core.view.forEach
 import androidx.core.view.forEachIndexed
 
@@ -36,6 +34,7 @@ class SearchFragment : Fragment() {
     private val apiViewModel: HelsinkiApiViewModel by viewModels()
     private val searchAdapter: ItemsAdapter by lazy { ItemsAdapter("searchFragment") }
     private lateinit var layoutManager: LinearLayoutManager
+    private var spinnerValue = "Activities"
     private var firstLoad: Boolean = true
 
     override fun onCreateView(
@@ -49,6 +48,7 @@ class SearchFragment : Fragment() {
         initNavigation()
         initSearchViewQueryTextListener()
         setButtons()
+        setSpinner()
 
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
@@ -129,46 +129,142 @@ class SearchFragment : Fragment() {
         imm.hideSoftInputFromWindow(view.windowToken, 0)
 
         val adapterList = mutableListOf<SingleHelsinkiItem>()
-        lifecycleScope.launch(Dispatchers.IO) {
-            val getActivities = async {
-                apiViewModel.getActivities(text, "en")
-            }
-            getActivities.await().let {
-                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                    val createList = async {
-                        it.body()?.data?.forEach { info ->
-                            adapterList.add(
-                                SingleHelsinkiItem(
-                                    id = info.id,
-                                    name = info.name.en,
-                                    infoUrl = info.info_url,
-                                    latitude = info.location.lat,
-                                    longitude = info.location.lon,
-                                    streetAddress = info.location.address.street_address,
-                                    locality = info.location.address.locality,
-                                    description = info.description.body,
-                                    images = info.description.images,
-                                    tags = info.tags,
-                                    whereWhenDuration = info.where_when_duration
-                                )
-                            )
+        when (spinnerValue) {
+            "Activities" -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val getItems = async {
+                        apiViewModel.getActivities(text, "en")
+                    }
+                    getItems.await().let {
+                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                            val createList = async {
+                                it.body()?.data?.forEach { info ->
+                                    adapterList.add(
+                                        SingleHelsinkiItem(
+                                            id = info.id,
+                                            name = info.name.en,
+                                            infoUrl = info.info_url,
+                                            latitude = info.location.lat,
+                                            longitude = info.location.lon,
+                                            streetAddress = info.location.address.street_address,
+                                            locality = info.location.address.locality,
+                                            description = info.description.body,
+                                            images = info.description.images,
+                                            tags = info.tags,
+                                            whereWhenDuration = info.where_when_duration
+                                        )
+                                    )
+                                }
+                            }
+                            createList.await()
+                            activity?.runOnUiThread {
+                                searchAdapter.setData(adapterList)
+                                binding.buttonsContainer.visibility = View.GONE
+                                binding.recyclerview.visibility = View.VISIBLE
+                            }
+                        } else {
+                            activity?.runOnUiThread {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Nothing was found!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.recyclerview.visibility = View.GONE
+                                binding.buttonsContainer.visibility = View.VISIBLE
+                            }
                         }
                     }
-                    createList.await()
-                    activity?.runOnUiThread {
-                        searchAdapter.setData(adapterList)
-                        binding.buttonsContainer.visibility = View.GONE
-                        binding.recyclerview.visibility = View.VISIBLE
+                }
+            }
+            "Places" -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val getItems = async {
+                        apiViewModel.getPlaces(text, "en")
                     }
-                } else {
-                    activity?.runOnUiThread {
-                        Toast.makeText(
-                            requireContext(),
-                            "Nothing was found!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.recyclerview.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.VISIBLE
+                    getItems.await().let {
+                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                            val createList = async {
+                                it.body()?.data?.forEach { info ->
+                                    adapterList.add(
+                                        SingleHelsinkiItem(
+                                            id = info.id,
+                                            name = info.name.en,
+                                            infoUrl = info.info_url,
+                                            latitude = info.location.lat,
+                                            longitude = info.location.lon,
+                                            streetAddress = info.location.address.street_address,
+                                            locality = info.location.address.locality,
+                                            description = info.description.body,
+                                            images = info.description.images,
+                                            tags = info.tags,
+                                            openingHours = info.opening_hours
+                                        )
+                                    )
+                                }
+                            }
+                            createList.await()
+                            activity?.runOnUiThread {
+                                searchAdapter.setData(adapterList)
+                                binding.buttonsContainer.visibility = View.GONE
+                                binding.recyclerview.visibility = View.VISIBLE
+                            }
+                        } else {
+                            activity?.runOnUiThread {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Nothing was found!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.recyclerview.visibility = View.GONE
+                                binding.buttonsContainer.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                }
+            }
+            "Events" -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val getItems = async {
+                        apiViewModel.getEvents(text, "en")
+                    }
+                    getItems.await().let {
+                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                            val createList = async {
+                                it.body()?.data?.forEach { info ->
+                                    adapterList.add(
+                                        SingleHelsinkiItem(
+                                            id = info.id,
+                                            name = info.name.en,
+                                            infoUrl = info.info_url,
+                                            latitude = info.location.lat,
+                                            longitude = info.location.lon,
+                                            streetAddress = info.location.address.street_address,
+                                            locality = info.location.address.locality,
+                                            description = info.description.body,
+                                            images = info.description.images,
+                                            tags = info.tags,
+                                            eventDates = info.event_dates
+                                        )
+                                    )
+                                }
+                            }
+                            createList.await()
+                            activity?.runOnUiThread {
+                                searchAdapter.setData(adapterList)
+                                binding.buttonsContainer.visibility = View.GONE
+                                binding.recyclerview.visibility = View.VISIBLE
+                            }
+                        } else {
+                            activity?.runOnUiThread {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Nothing was found!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.recyclerview.visibility = View.GONE
+                                binding.buttonsContainer.visibility = View.VISIBLE
+                            }
+                        }
                     }
                 }
             }
@@ -188,22 +284,123 @@ class SearchFragment : Fragment() {
             "Trips",
             "Sea"
         )
-        binding.buttonsContainer.forEachIndexed { index, view ->
-            setSingleButtonTextAndListener(view as Button, activitiesList[index])
+
+        val placesList = listOf(
+            "Rock",
+            "Billiards",
+            "Auditorium",
+            "Luxury",
+            "StreetStyle",
+            "NordicSwan",
+            "Hotel",
+            "EcoShop",
+            "FreeCatering",
+            "Vegetarian",
+        )
+
+        val eventsList = listOf(
+            "fairy tales",
+            "babies",
+            "lectures",
+            "celebrations",
+            "pupils",
+            "ice dancing",
+            "young adults",
+            "rainbows",
+            "history",
+            "well-being",
+        )
+        when (spinnerValue) {
+            "Activities" -> {
+                binding.buttonsContainer.forEachIndexed { index, view ->
+                    setSingleButtonTextAndListener(view as Button, activitiesList[index])
+                }
+            }
+            "Places" -> {
+                binding.buttonsContainer.forEachIndexed { index, view ->
+                    setSingleButtonTextAndListener(view as Button, placesList[index])
+                }
+            }
+            "Events" -> {
+                binding.buttonsContainer.forEachIndexed { index, view ->
+                    setSingleButtonTextAndListener(view as Button, eventsList[index])
+                }
+            }
         }
     }
+
 
     private fun setSingleButtonTextAndListener(button: Button, textValue: String) {
         val textLowerCase = textValue.lowercase()
-        button.text = textValue
-        button.setOnClickListener {
-            binding.searchview.setQuery(textLowerCase, false)
-            getItems(textLowerCase)
+        val textCapitalize = textValue.replaceFirstChar { it.uppercase() }
+        button.text = textLowerCase
+        when (spinnerValue) {
+            "Activities" -> {
+                button.setOnClickListener {
+                    binding.searchview.setQuery(textLowerCase, false)
+                    getItems(textLowerCase)
+                }
+            }
+            "Places" -> {
+                button.setOnClickListener {
+                    binding.searchview.setQuery(textCapitalize, false)
+                    getItems(textCapitalize)
+                }
+            }
+            "Events" -> {
+                button.setOnClickListener {
+                    binding.searchview.setQuery(textLowerCase, false)
+                    getItems(textLowerCase)
+                }
+            }
         }
     }
 
-    override fun onDestroyView() {
-        Log.d("destroy", "onDestroyView called")
-        super.onDestroyView()
+    private fun setSpinner() {
+        val spinnerArray = listOf("Activities", "Places", "Events")
+
+        ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            spinnerArray
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            binding.itemtypeSpinner.adapter = adapter
+            binding.itemtypeSpinner.onItemSelectedListener = ItemsSpinner()
+        }
+    }
+
+    inner class ItemsSpinner : Fragment(), AdapterView.OnItemSelectedListener {
+
+        override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+            if (view != null) {
+                when (parent.getItemAtPosition(pos).toString()) {
+                    "Activities" -> {
+                        Log.d("response", "Activities spinner")
+                        spinnerValue = "Activities"
+                        setButtons()
+                    }
+                    "Places" -> {
+                        Log.d("response", "Places spinner")
+                        spinnerValue = "Places"
+                        setButtons()
+                    }
+                    "Events" -> {
+                        Log.d("response", "Events spinner")
+                        spinnerValue = "Events"
+                        setButtons()
+                    }
+                }
+            }
+        }
+
+        override fun onNothingSelected(p0: AdapterView<*>?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onDestroyView() {
+            Log.d("destroy", "onDestroyView called")
+            super.onDestroyView()
+        }
     }
 }

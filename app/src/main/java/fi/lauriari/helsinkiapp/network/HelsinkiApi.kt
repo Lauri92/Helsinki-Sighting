@@ -15,6 +15,19 @@ interface HelsinkiApi {
         @Query("language_filter") languageFilter: String,
     ): Response<HelsinkiActivities>
 
+    @GET("v1/places/")
+    suspend fun getPlaces(
+        @Query("tags_search") action: String,
+        @Query("language_filter") languageFilter: String,
+    ): Response<HelsinkiPlaces>
+
+    @GET("v1/events/")
+    suspend fun getEvents(
+        @Query("tags_search") action: String,
+        @Query("language_filter") languageFilter: String,
+    ): Response<HelsinkiEvents>
+
+
     @GET("v1/activities/")
     suspend fun getActivitiesNearby(
         @Query("distance_filter") stringrepresentation: String,
