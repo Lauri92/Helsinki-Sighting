@@ -118,6 +118,23 @@ class SearchFragment : Fragment() {
     }
 
     private fun getItems(text: String) {
+
+        hideKeyboard()
+
+        when (spinnerValue) {
+            "Activities" -> {
+                handleActivityRequest(text)
+            }
+            "Places" -> {
+                handlePlacesRequest(text)
+            }
+            "Events" -> {
+                handleEventsRequest(text)
+            }
+        }
+    }
+
+    private fun hideKeyboard() {
         val imm =
             activity?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         var view = activity?.currentFocus
@@ -125,151 +142,6 @@ class SearchFragment : Fragment() {
             view = View(activity)
         }
         imm.hideSoftInputFromWindow(view.windowToken, 0)
-
-        val adapterList = mutableListOf<SingleHelsinkiItem>()
-        when (spinnerValue) {
-            "Activities" -> {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val getItems = async {
-                        apiViewModel.getActivities(text, "en")
-                    }
-                    getItems.await().let {
-                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                            val createList = async {
-                                it.body()?.data?.forEach { info ->
-                                    adapterList.add(
-                                        SingleHelsinkiItem(
-                                            id = info.id,
-                                            name = info.name.en,
-                                            infoUrl = info.info_url,
-                                            latitude = info.location.lat,
-                                            longitude = info.location.lon,
-                                            streetAddress = info.location.address.street_address,
-                                            locality = info.location.address.locality,
-                                            description = info.description.body,
-                                            images = info.description.images,
-                                            tags = info.tags,
-                                            whereWhenDuration = info.where_when_duration,
-                                            itemType = info.source_type.name
-                                        )
-                                    )
-                                }
-                            }
-                            createList.await()
-                            activity?.runOnUiThread {
-                                searchAdapter.setData(adapterList)
-                                binding.buttonsContainer.visibility = View.GONE
-                                binding.recyclerview.visibility = View.VISIBLE
-                            }
-                        } else {
-                            activity?.runOnUiThread {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Nothing was found!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                binding.recyclerview.visibility = View.GONE
-                                binding.buttonsContainer.visibility = View.VISIBLE
-                            }
-                        }
-                    }
-                }
-            }
-            "Places" -> {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val getItems = async {
-                        apiViewModel.getPlaces(text, "en")
-                    }
-                    getItems.await().let {
-                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                            val createList = async {
-                                it.body()?.data?.forEach { info ->
-                                    adapterList.add(
-                                        SingleHelsinkiItem(
-                                            id = info.id,
-                                            name = info.name.en,
-                                            infoUrl = info.info_url,
-                                            latitude = info.location.lat,
-                                            longitude = info.location.lon,
-                                            streetAddress = info.location.address.street_address,
-                                            locality = info.location.address.locality,
-                                            description = info.description.body,
-                                            images = info.description.images,
-                                            tags = info.tags,
-                                            openingHours = info.opening_hours,
-                                            itemType = info.source_type.name
-                                        )
-                                    )
-                                }
-                            }
-                            createList.await()
-                            activity?.runOnUiThread {
-                                searchAdapter.setData(adapterList)
-                                binding.buttonsContainer.visibility = View.GONE
-                                binding.recyclerview.visibility = View.VISIBLE
-                            }
-                        } else {
-                            activity?.runOnUiThread {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Nothing was found!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                binding.recyclerview.visibility = View.GONE
-                                binding.buttonsContainer.visibility = View.VISIBLE
-                            }
-                        }
-                    }
-                }
-            }
-            "Events" -> {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val getItems = async {
-                        apiViewModel.getEvents(text, "en")
-                    }
-                    getItems.await().let {
-                        if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                            val createList = async {
-                                it.body()?.data?.forEach { info ->
-                                    adapterList.add(
-                                        SingleHelsinkiItem(
-                                            id = info.id,
-                                            name = info.name.en,
-                                            infoUrl = info.info_url,
-                                            latitude = info.location.lat,
-                                            longitude = info.location.lon,
-                                            streetAddress = info.location.address.street_address,
-                                            locality = info.location.address.locality,
-                                            description = info.description.body,
-                                            images = info.description.images,
-                                            tags = info.tags,
-                                            eventDates = info.event_dates,
-                                            itemType = info.source_type.name
-                                        )
-                                    )
-                                }
-                            }
-                            createList.await()
-                            activity?.runOnUiThread {
-                                searchAdapter.setData(adapterList)
-                                binding.buttonsContainer.visibility = View.GONE
-                                binding.recyclerview.visibility = View.VISIBLE
-                            }
-                        } else {
-                            activity?.runOnUiThread {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Nothing was found!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                binding.recyclerview.visibility = View.GONE
-                                binding.buttonsContainer.visibility = View.VISIBLE
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private fun setButtons() {
@@ -330,6 +202,152 @@ class SearchFragment : Fragment() {
         }
     }
 
+    private fun handleActivityRequest(text: String) {
+        val adapterList = mutableListOf<SingleHelsinkiItem>()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val getItems = async {
+                apiViewModel.getActivities(text, "en")
+            }
+            getItems.await().let {
+                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                    val createList = async {
+                        it.body()?.data?.forEach { info ->
+                            adapterList.add(
+                                SingleHelsinkiItem(
+                                    id = info.id,
+                                    name = info.name.en,
+                                    infoUrl = info.info_url,
+                                    latitude = info.location.lat,
+                                    longitude = info.location.lon,
+                                    streetAddress = info.location.address.street_address,
+                                    locality = info.location.address.locality,
+                                    description = info.description.body,
+                                    images = info.description.images,
+                                    tags = info.tags,
+                                    whereWhenDuration = info.where_when_duration,
+                                    itemType = info.source_type.name
+                                )
+                            )
+                        }
+                    }
+                    createList.await()
+                    activity?.runOnUiThread {
+                        searchAdapter.setData(adapterList)
+                        binding.buttonsContainer.visibility = View.GONE
+                        binding.recyclerview.visibility = View.VISIBLE
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "Nothing was found!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        binding.recyclerview.visibility = View.GONE
+                        binding.buttonsContainer.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handlePlacesRequest(text: String) {
+        val adapterList = mutableListOf<SingleHelsinkiItem>()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val getItems = async {
+                apiViewModel.getPlaces(text, "en")
+            }
+            getItems.await().let {
+                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                    val createList = async {
+                        it.body()?.data?.forEach { info ->
+                            adapterList.add(
+                                SingleHelsinkiItem(
+                                    id = info.id,
+                                    name = info.name.en,
+                                    infoUrl = info.info_url,
+                                    latitude = info.location.lat,
+                                    longitude = info.location.lon,
+                                    streetAddress = info.location.address.street_address,
+                                    locality = info.location.address.locality,
+                                    description = info.description.body,
+                                    images = info.description.images,
+                                    tags = info.tags,
+                                    openingHours = info.opening_hours,
+                                    itemType = info.source_type.name
+                                )
+                            )
+                        }
+                    }
+                    createList.await()
+                    activity?.runOnUiThread {
+                        searchAdapter.setData(adapterList)
+                        binding.buttonsContainer.visibility = View.GONE
+                        binding.recyclerview.visibility = View.VISIBLE
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "Nothing was found!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        binding.recyclerview.visibility = View.GONE
+                        binding.buttonsContainer.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleEventsRequest(text: String) {
+        val adapterList = mutableListOf<SingleHelsinkiItem>()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val getItems = async {
+                apiViewModel.getEvents(text, "en")
+            }
+            getItems.await().let {
+                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
+                    val createList = async {
+                        it.body()?.data?.forEach { info ->
+                            adapterList.add(
+                                SingleHelsinkiItem(
+                                    id = info.id,
+                                    name = info.name.en,
+                                    infoUrl = info.info_url,
+                                    latitude = info.location.lat,
+                                    longitude = info.location.lon,
+                                    streetAddress = info.location.address.street_address,
+                                    locality = info.location.address.locality,
+                                    description = info.description.body,
+                                    images = info.description.images,
+                                    tags = info.tags,
+                                    eventDates = info.event_dates,
+                                    itemType = info.source_type.name
+                                )
+                            )
+                        }
+                    }
+                    createList.await()
+                    activity?.runOnUiThread {
+                        searchAdapter.setData(adapterList)
+                        binding.buttonsContainer.visibility = View.GONE
+                        binding.recyclerview.visibility = View.VISIBLE
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "Nothing was found!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        binding.recyclerview.visibility = View.GONE
+                        binding.buttonsContainer.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
 
     private fun setSingleButtonTextAndListener(button: Button, textValue: String) {
         val textLowerCase = textValue.lowercase()
