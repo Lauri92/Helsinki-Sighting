@@ -133,6 +133,4 @@ class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHol
         decodeObjects()
         notifyDataSetChanged()
     }
-
-
 }

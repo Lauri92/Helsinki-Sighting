@@ -63,6 +63,7 @@ class SearchFragment : Fragment() {
             override fun onQueryTextChange(query: String?): Boolean {
                 query ?: return false
                 if (query == "") {
+                    binding.buttonsContainer.visibility = View.VISIBLE
                     binding.recyclerview.visibility = View.GONE
                     layoutManager.scrollToPositionWithOffset(0, 0)
                 }
@@ -101,6 +102,7 @@ class SearchFragment : Fragment() {
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
         binding.recyclerview.adapter = itemsAdapter
+
         val dividerItemDecoration = DividerItemDecoration(
             context,
             layoutManager.orientation

@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,14 +32,12 @@ import java.util.ArrayList
 import org.osmdroid.bonuspack.routing.Road
 import org.osmdroid.views.overlay.Polyline
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import fi.lauriari.helsinkiapp.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.osmdroid.views.overlay.PolyOverlayWithIW as PolyOverlayWithIW1
 
 class MapFragment : Fragment() {
 
@@ -322,8 +319,8 @@ class MapFragment : Fragment() {
                 args.longitude.toDouble()
             )
             marker.title = args.itemName
-            marker.setOnMarkerClickListener { marker, _ ->
-                marker.showInfoWindow()
+            marker.setOnMarkerClickListener { it, _ ->
+                it.showInfoWindow()
                 return@setOnMarkerClickListener true
             }
         }
@@ -375,7 +372,7 @@ class MapFragment : Fragment() {
                 for (location in locationResult.locations) {
                     Log.d("location", "${location.latitude} ${location.longitude}")
                     val geoPoint = GeoPoint(location.latitude, location.longitude)
-                    userLocation = GeoPoint(location.latitude, location.longitude)
+                    userLocation = GeoPoint(geoPoint)
                     updateUserLocation(userLocation!!)
                 }
             }

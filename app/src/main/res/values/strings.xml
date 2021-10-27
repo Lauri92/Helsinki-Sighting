@@ -8,4 +8,5 @@
     <string name="search">Search</string>
     <string name="favorites">Favorites</string>
     <string name="set_type_of_transportation">Set type of transportation:</string>
+    <string name="set_radius_to_seek_items_from">Set radius to seek items from (in meters):</string>
 </resources>

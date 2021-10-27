@@ -36,6 +36,8 @@ import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import retrofit2.Response
 import androidx.recyclerview.widget.DividerItemDecoration
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.slider.Slider
 
 
 class BrowseFragment : Fragment() {
@@ -49,6 +51,7 @@ class BrowseFragment : Fragment() {
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
     private var userLocation: GeoPoint? = null
+    private var range = 0.5
 
 
     override fun onCreateView(
@@ -62,6 +65,18 @@ class BrowseFragment : Fragment() {
         initLocationClientRequestAndCallback()
         initSetOnClickListeners()
         checkSelfPermissions()
+        BottomSheetBehavior.from(binding.bottomSheet).apply {
+            peekHeight = 60
+            this.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        binding.slider.value = 500F
+        binding.rangeTv.text = 500F.toInt().toString() + "m"
+
+        binding.slider.addOnChangeListener { slider, value, fromUser ->
+            range = (slider.value / 1000).toDouble()
+            binding.rangeTv.text = "${slider.value.toInt()}m"
+        }
+
         return view
     }
 
@@ -103,7 +118,7 @@ class BrowseFragment : Fragment() {
                         binding.viewmodel?.getActivitiesNearby(
 
                             Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, 0.5
+                                userLocation!!.latitude, userLocation!!.longitude, range
                             ), "en"
                         )
                         /*
@@ -129,7 +144,7 @@ class BrowseFragment : Fragment() {
                     val getPlaces = async {
                         binding.viewmodel?.getPlacesNearby(
                             Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, 0.5
+                                userLocation!!.latitude, userLocation!!.longitude, range
                             ), "en"
                         )
                         /*
@@ -155,7 +170,7 @@ class BrowseFragment : Fragment() {
                     val getEvents = async {
                         binding.viewmodel?.getEventsNearby(
                             Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, 0.5
+                                userLocation!!.latitude, userLocation!!.longitude, range
                             ), "en"
                         )
                         /*
@@ -233,7 +248,6 @@ class BrowseFragment : Fragment() {
     }
 
      */
-
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful && response.body()?.data?.isNotEmpty() == true) {
