@@ -12,7 +12,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:background="#9FC9EB"
         android:orientation="vertical">
 
         <com.denzcoskun.imageslider.ImageSlider
@@ -39,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@color/white"
+            android:background="#9FC9EB"
             android:fillViewport="true"
             android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -88,7 +89,7 @@
                         android:id="@+id/streetaddress_tv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#810606"
+                        android:textColor="@color/black"
                         android:textSize="16sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -136,7 +137,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:autoLink="web"
-                    android:textColorLink="#03A9F4"
+                    android:textColorLink="#C2A251"
                     android:textSize="16sp"
                     tools:text="TextView" />
 

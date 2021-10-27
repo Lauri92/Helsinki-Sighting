@@ -47,6 +47,7 @@ class SearchFragment : Fragment() {
         initSearchViewQueryTextListener()
         setButtons()
         setSpinner()
+        binding.progressBar.visibility = View.GONE
         return view
     }
 
@@ -61,7 +62,6 @@ class SearchFragment : Fragment() {
             override fun onQueryTextChange(query: String?): Boolean {
                 query ?: return false
                 if (query == "") {
-                    binding.buttonsContainer.visibility = View.VISIBLE
                     binding.recyclerview.visibility = View.GONE
                     layoutManager.scrollToPositionWithOffset(0, 0)
                 }
