@@ -25,6 +25,7 @@ import android.app.Activity
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.core.view.forEachIndexed
+import androidx.recyclerview.widget.DividerItemDecoration
 
 class SearchFragment : Fragment() {
 
@@ -100,6 +101,11 @@ class SearchFragment : Fragment() {
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
         binding.recyclerview.adapter = itemsAdapter
+        val dividerItemDecoration = DividerItemDecoration(
+            context,
+            layoutManager.orientation
+        )
+        binding.recyclerview.addItemDecoration(dividerItemDecoration)
 
         if (firstLoad) {
             binding.recyclerview.visibility = View.GONE

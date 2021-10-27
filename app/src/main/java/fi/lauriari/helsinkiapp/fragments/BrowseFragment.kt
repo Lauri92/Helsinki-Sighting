@@ -35,6 +35,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import retrofit2.Response
+import androidx.recyclerview.widget.DividerItemDecoration
+
+
+
 
 
 class BrowseFragment : Fragment() {
@@ -177,6 +181,11 @@ class BrowseFragment : Fragment() {
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
         binding.recyclerview.adapter = itemsAdapter
+        val dividerItemDecoration = DividerItemDecoration(
+            context,
+            layoutManager.orientation
+        )
+        binding.recyclerview.addItemDecoration(dividerItemDecoration)
     }
 
     private fun initLocationClientRequestAndCallback() {
