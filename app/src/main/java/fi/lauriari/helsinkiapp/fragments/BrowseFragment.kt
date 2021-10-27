@@ -65,6 +65,12 @@ class BrowseFragment : Fragment() {
         initLocationClientRequestAndCallback()
         initSetOnClickListeners()
         checkSelfPermissions()
+        initBottomsheetAndSlider()
+
+        return view
+    }
+
+    private fun initBottomsheetAndSlider() {
         BottomSheetBehavior.from(binding.bottomSheet).apply {
             peekHeight = 60
             this.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -76,8 +82,6 @@ class BrowseFragment : Fragment() {
             range = (slider.value / 1000).toDouble()
             binding.rangeTv.text = "${slider.value.toInt()}m"
         }
-
-        return view
     }
 
     private fun initNavigation() {
