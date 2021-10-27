@@ -18,6 +18,8 @@ import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentFavoritesBinding
 import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiActivity
+import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiEvent
+import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiPlace
 import fi.lauriari.helsinkiapp.entities.Favorite
 import fi.lauriari.helsinkiapp.viewmodels.FavoriteViewModel
 import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
@@ -43,39 +45,94 @@ class FavoritesFragment : Fragment() {
         val view = binding.root
         initComponents()
         initNavigation()
+        setButtonOnClickListeners()
+        return view
+    }
 
+    private fun setButtonOnClickListeners() {
         binding.activitesBtn.setOnClickListener {
             getFavorites("Activities")
         }
 
         binding.placesBtn.setOnClickListener {
-            getFavorites("places")
+            getFavorites("Places")
         }
 
-        return view
+        binding.eventsBtn.setOnClickListener {
+            getFavorites("Events")
+        }
     }
 
     private fun getFavorites(itemType: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             var favorites: List<Favorite>? = null
-            val getFavorites = async {
-                when (itemType) {
-                    "Activities" -> {
-                        favorites = favoritesViewModel.getFavoriteList().toMutableList().filter {
-                            it.itemType == "MyHelsinki"
+            when (itemType) {
+                "Activities" -> {
+                    val getActivities = async {
+                        favorites =
+                            favoritesViewModel.getFavoriteList().toMutableList().filter {
+                                it.itemType == "MyHelsinki"
+                            }
+                    }
+                    getActivities.await()
+                    if (favorites?.isNotEmpty() == true) {
+                        setActivitiesListAndAdapter(favorites)
+                    } else {
+                        activity?.runOnUiThread {
+                            Toast.makeText(
+                                requireContext(),
+                                "No activities set as favorite!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
-                    "Places" -> {
-                        favorites = favoritesViewModel.getFavoriteList().toMutableList().filter {
-                            it.itemType == "Matko"
+                }
+                "Places" -> {
+                    val getPlaces = async {
+                        favorites =
+                            favoritesViewModel.getFavoriteList().toMutableList().filter {
+                                it.itemType == "Matko"
+                            }
+                    }
+                    getPlaces.await()
+                    if (favorites?.isNotEmpty() == true) {
+                        setPlacesListAndAdapter(favorites)
+                    } else {
+                        activity?.runOnUiThread {
+                            Toast.makeText(
+                                requireContext(),
+                                "No places set as favorite!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
-                    "LinkedEvents" -> {
-
+                }
+                "Events" -> {
+                    val getEvents = async {
+                        favorites =
+                            favoritesViewModel.getFavoriteList().toMutableList().filter {
+                                it.itemType == "LinkedEvents"
+                            }
+                    }
+                    getEvents.await()
+                    if (favorites?.isNotEmpty() == true) {
+                        setEventsListAndAdapter(favorites)
+                    } else {
+                        activity?.runOnUiThread {
+                            Toast.makeText(
+                                requireContext(),
+                                "No events set as favorite!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 }
             }
-            getFavorites.await()
+        }
+    }
+
+    private suspend fun setActivitiesListAndAdapter(favorites: List<Favorite>?) {
+        lifecycleScope.launch(Dispatchers.IO) {
             val listForAdapter = mutableListOf<SingleHelsinkiItem>()
             val populateList = async {
                 favorites?.forEach {
@@ -113,6 +170,87 @@ class FavoritesFragment : Fragment() {
             }
         }
     }
+
+    private suspend fun setPlacesListAndAdapter(favorites: List<Favorite>?) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val listForAdapter = mutableListOf<SingleHelsinkiItem>()
+            val populateList = async {
+                favorites?.forEach {
+                    var itemResponse: Response<SingleHelsinkiPlace>? = null
+                    val getSingleItem = async {
+                        itemResponse = apiViewModel.getPlaceById(it.itemApiId, "en")
+                    }
+                    getSingleItem.await()
+                    val addSingleItem = async {
+                        if (itemResponse?.isSuccessful == true) {
+                            listForAdapter.add(
+                                SingleHelsinkiItem(
+                                    id = itemResponse?.body()?.id,
+                                    name = itemResponse?.body()?.name?.en,
+                                    infoUrl = itemResponse?.body()?.info_url,
+                                    latitude = itemResponse?.body()?.location?.lat,
+                                    longitude = itemResponse?.body()?.location?.lon,
+                                    streetAddress = itemResponse?.body()?.location?.address?.street_address,
+                                    locality = itemResponse?.body()?.location?.address?.locality,
+                                    description = itemResponse?.body()?.description?.body,
+                                    images = itemResponse?.body()?.description?.images,
+                                    tags = itemResponse?.body()?.tags,
+                                    openingHours = itemResponse?.body()?.opening_hours,
+                                    itemType = itemResponse?.body()?.source_type!!.name
+                                )
+                            )
+                        }
+                    }
+                    addSingleItem.await()
+                }
+            }
+            populateList.await()
+            activity?.runOnUiThread {
+                itemsAdapter.setData(listForAdapter)
+            }
+        }
+    }
+
+    private suspend fun setEventsListAndAdapter(favorites: List<Favorite>?) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val listForAdapter = mutableListOf<SingleHelsinkiItem>()
+            val populateList = async {
+                favorites?.forEach {
+                    var itemResponse: Response<SingleHelsinkiEvent>? = null
+                    val getSingleItem = async {
+                        itemResponse = apiViewModel.getEventById(it.itemApiId, "en")
+                    }
+                    getSingleItem.await()
+                    val addSingleItem = async {
+                        if (itemResponse?.isSuccessful == true) {
+                            listForAdapter.add(
+                                SingleHelsinkiItem(
+                                    id = itemResponse?.body()?.id,
+                                    name = itemResponse?.body()?.name?.en,
+                                    infoUrl = itemResponse?.body()?.info_url,
+                                    latitude = itemResponse?.body()?.location?.lat,
+                                    longitude = itemResponse?.body()?.location?.lon,
+                                    streetAddress = itemResponse?.body()?.location?.address?.street_address,
+                                    locality = itemResponse?.body()?.location?.address?.locality,
+                                    description = itemResponse?.body()?.description?.body,
+                                    images = itemResponse?.body()?.description?.images,
+                                    tags = itemResponse?.body()?.tags,
+                                    eventDates = itemResponse?.body()?.event_dates,
+                                    itemType = itemResponse?.body()?.source_type!!.name
+                                )
+                            )
+                        }
+                    }
+                    addSingleItem.await()
+                }
+            }
+            populateList.await()
+            activity?.runOnUiThread {
+                itemsAdapter.setData(listForAdapter)
+            }
+        }
+    }
+
 
     private fun initComponents() {
         binding.lifecycleOwner = viewLifecycleOwner

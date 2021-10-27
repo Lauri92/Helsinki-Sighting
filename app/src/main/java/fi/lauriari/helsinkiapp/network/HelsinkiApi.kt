@@ -80,4 +80,13 @@ interface HelsinkiApi {
         @Query("language_filter") languageFilter: String,
     ): Response<SingleHelsinkiPlace>
 
+    /**
+     * Get single event by it's ID
+     */
+    @GET("v1/event/{place_id}")
+    suspend fun getEventById(
+        @Path(value = "place_id", encoded = true) activityId: String,
+        @Query("language_filter") languageFilter: String,
+    ): Response<SingleHelsinkiEvent>
+
 }

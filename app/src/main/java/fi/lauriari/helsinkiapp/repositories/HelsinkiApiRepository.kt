@@ -66,4 +66,11 @@ class HelsinkiApiRepository {
         return HelsinkiApiRetrofitInstance.api.getPlaceByID(id, languageFilter)
     }
 
+    suspend fun getEventById(
+        id: String,
+        languageFilter: String
+    ): Response<SingleHelsinkiEvent> {
+        return HelsinkiApiRetrofitInstance.api.getEventById(id, languageFilter)
+    }
+
 }

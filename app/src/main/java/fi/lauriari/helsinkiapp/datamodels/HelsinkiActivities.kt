@@ -71,7 +71,7 @@ data class SingleHelsinkiActivity(
 )
 
 data class SingleHelsinkiPlace(
-    @SerializedName("id") val id: Int,
+    @SerializedName("id") val id: String,
     @SerializedName("name") val name: Name,
     @SerializedName("source_type") val source_type: Source_type,
     @SerializedName("info_url") val info_url: String,
@@ -80,6 +80,18 @@ data class SingleHelsinkiPlace(
     @SerializedName("description") val description: Description,
     @SerializedName("tags") val tags: List<Tag>,
     @SerializedName("opening_hours") val opening_hours: Opening_hours
+)
+
+data class SingleHelsinkiEvent(
+    @SerializedName("id") val id : String,
+    @SerializedName("name") val name : Name,
+    @SerializedName("source_type") val source_type : Source_type,
+    @SerializedName("info_url") val info_url : String,
+    @SerializedName("modified_at") val modified_at : String,
+    @SerializedName("location") val location : Location,
+    @SerializedName("description") val description : Description,
+    @SerializedName("tags") val tags : List<Tag>,
+    @SerializedName("event_dates") val event_dates : Event_dates
 )
 
 @Parcelize

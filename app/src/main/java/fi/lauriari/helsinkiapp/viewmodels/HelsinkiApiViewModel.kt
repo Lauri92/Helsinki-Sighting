@@ -96,4 +96,12 @@ class HelsinkiApiViewModel : ViewModel() {
         return apiResponse
     }
 
+    fun getEventById(id: String, languageFilter: String): Response<SingleHelsinkiEvent> {
+        var apiResponse: Response<SingleHelsinkiEvent>
+        runBlocking {
+            apiResponse = helsinkiApiRepository.getEventById(id, languageFilter)
+        }
+        return apiResponse
+    }
+
 }
