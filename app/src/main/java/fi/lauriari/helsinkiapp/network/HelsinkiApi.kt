@@ -1,9 +1,6 @@
 package fi.lauriari.helsinkiapp.network
 
-import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
-import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
-import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
-import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiActivity
+import fi.lauriari.helsinkiapp.datamodels.*
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -73,5 +70,14 @@ interface HelsinkiApi {
         @Path(value = "activity_id", encoded = true) activityId: String,
         @Query("language_filter") languageFilter: String,
     ): Response<SingleHelsinkiActivity>
+
+    /**
+     * Get single place by it's ID
+     */
+    @GET("v1/place/{place_id}")
+    suspend fun getPlaceByID(
+        @Path(value = "place_id", encoded = true) activityId: String,
+        @Query("language_filter") languageFilter: String,
+    ): Response<SingleHelsinkiPlace>
 
 }
