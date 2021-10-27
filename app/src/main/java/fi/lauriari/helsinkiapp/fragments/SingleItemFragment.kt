@@ -116,6 +116,13 @@ class SingleItemFragment : Fragment() {
                         )
                     }
                     insertFavorite.await()
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "${args.helsinkiItem.name} added to favorites!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     setOnclickListeners()
                 }
             }
@@ -139,6 +146,13 @@ class SingleItemFragment : Fragment() {
                         favoriteViewModel.deleteFavorite(isFavorited[0].id)
                     }
                     deleteFavorite.join()
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "${args.helsinkiItem.name} removed from favorites!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     setOnclickListeners()
                 }
             }

@@ -106,7 +106,6 @@ class SearchFragment : Fragment() {
             binding.buttonsContainer.visibility = View.VISIBLE
             firstLoad = false
         } else {
-            Log.d("firstload", "in else block!!")
             binding.recyclerview.invalidate()
             binding.recyclerview.visibility = View.VISIBLE
             binding.buttonsContainer.invalidate()
@@ -117,7 +116,7 @@ class SearchFragment : Fragment() {
     private fun getItems(text: String) {
 
         hideKeyboard()
-
+        binding.progressBar.visibility = View.VISIBLE
         when (spinnerValue) {
             "Activities" -> {
                 handleActivityRequest(text)
@@ -230,6 +229,7 @@ class SearchFragment : Fragment() {
                     createList.await()
                     activity?.runOnUiThread {
                         itemsAdapter.setData(adapterList)
+                        binding.progressBar.visibility = View.GONE
                         binding.buttonsContainer.visibility = View.GONE
                         binding.recyclerview.visibility = View.VISIBLE
                     }
@@ -240,6 +240,7 @@ class SearchFragment : Fragment() {
                             "Nothing was found!",
                             Toast.LENGTH_SHORT
                         ).show()
+                        binding.progressBar.visibility = View.GONE
                         binding.recyclerview.visibility = View.GONE
                         binding.buttonsContainer.visibility = View.VISIBLE
                     }
@@ -279,6 +280,7 @@ class SearchFragment : Fragment() {
                     createList.await()
                     activity?.runOnUiThread {
                         itemsAdapter.setData(adapterList)
+                        binding.progressBar.visibility = View.GONE
                         binding.buttonsContainer.visibility = View.GONE
                         binding.recyclerview.visibility = View.VISIBLE
                     }
@@ -289,6 +291,7 @@ class SearchFragment : Fragment() {
                             "Nothing was found!",
                             Toast.LENGTH_SHORT
                         ).show()
+                        binding.progressBar.visibility = View.GONE
                         binding.recyclerview.visibility = View.GONE
                         binding.buttonsContainer.visibility = View.VISIBLE
                     }
@@ -328,6 +331,7 @@ class SearchFragment : Fragment() {
                     createList.await()
                     activity?.runOnUiThread {
                         itemsAdapter.setData(adapterList)
+                        binding.progressBar.visibility = View.GONE
                         binding.buttonsContainer.visibility = View.GONE
                         binding.recyclerview.visibility = View.VISIBLE
                     }
@@ -338,6 +342,7 @@ class SearchFragment : Fragment() {
                             "Nothing was found!",
                             Toast.LENGTH_SHORT
                         ).show()
+                        binding.progressBar.visibility = View.GONE
                         binding.recyclerview.visibility = View.GONE
                         binding.buttonsContainer.visibility = View.VISIBLE
                     }

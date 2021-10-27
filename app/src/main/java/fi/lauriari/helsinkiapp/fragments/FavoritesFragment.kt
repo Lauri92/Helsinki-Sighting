@@ -51,14 +51,17 @@ class FavoritesFragment : Fragment() {
 
     private fun setButtonOnClickListeners() {
         binding.activitesBtn.setOnClickListener {
+            binding.progressBar.visibility = View.VISIBLE
             getFavorites("Activities")
         }
 
         binding.placesBtn.setOnClickListener {
+            binding.progressBar.visibility = View.VISIBLE
             getFavorites("Places")
         }
 
         binding.eventsBtn.setOnClickListener {
+            binding.progressBar.visibility = View.VISIBLE
             getFavorites("Events")
         }
     }
@@ -84,6 +87,7 @@ class FavoritesFragment : Fragment() {
                                 "No activities set as favorite!",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            binding.progressBar.visibility = View.GONE
                         }
                     }
                 }
@@ -104,6 +108,7 @@ class FavoritesFragment : Fragment() {
                                 "No places set as favorite!",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            binding.progressBar.visibility = View.GONE
                         }
                     }
                 }
@@ -124,6 +129,7 @@ class FavoritesFragment : Fragment() {
                                 "No events set as favorite!",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            binding.progressBar.visibility = View.GONE
                         }
                     }
                 }
@@ -167,6 +173,7 @@ class FavoritesFragment : Fragment() {
             populateList.await()
             activity?.runOnUiThread {
                 itemsAdapter.setData(listForAdapter)
+                binding.progressBar.visibility = View.GONE
             }
         }
     }
@@ -207,6 +214,7 @@ class FavoritesFragment : Fragment() {
             populateList.await()
             activity?.runOnUiThread {
                 itemsAdapter.setData(listForAdapter)
+                binding.progressBar.visibility = View.GONE
             }
         }
     }
@@ -247,10 +255,10 @@ class FavoritesFragment : Fragment() {
             populateList.await()
             activity?.runOnUiThread {
                 itemsAdapter.setData(listForAdapter)
+                binding.progressBar.visibility = View.GONE
             }
         }
     }
-
 
     private fun initComponents() {
         binding.lifecycleOwner = viewLifecycleOwner
