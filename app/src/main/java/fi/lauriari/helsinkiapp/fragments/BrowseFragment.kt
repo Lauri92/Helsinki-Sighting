@@ -38,6 +38,8 @@ import retrofit2.Response
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.slider.Slider
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 
 
 class BrowseFragment : Fragment() {
@@ -278,7 +280,7 @@ class BrowseFragment : Fragment() {
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
-            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_LONG).show()
+            showNoEntriesFoundDialog()
             binding.progressBar.visibility = View.GONE
         }
     }
@@ -308,7 +310,7 @@ class BrowseFragment : Fragment() {
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
-            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_LONG).show()
+            showNoEntriesFoundDialog()
             binding.progressBar.visibility = View.GONE
         }
     }
@@ -338,7 +340,7 @@ class BrowseFragment : Fragment() {
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
-            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_LONG).show()
+            showNoEntriesFoundDialog()
             binding.progressBar.visibility = View.GONE
         }
     }
@@ -420,6 +422,18 @@ class BrowseFragment : Fragment() {
         Log.d("destroy", "onDestroyView called")
         super.onDestroyView()
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun showNoEntriesFoundDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("No entries found")
+        builder.setMessage(
+            "Try increasing the radius.\nBeing near Helsinki helps too."
+        )
+        builder.setIcon(android.R.drawable.ic_dialog_alert)
+        builder.setPositiveButton("OK") { _, _ ->
+        }.create()
+        builder.show()
     }
 
     companion object {
