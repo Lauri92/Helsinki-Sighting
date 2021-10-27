@@ -38,9 +38,6 @@ import retrofit2.Response
 import androidx.recyclerview.widget.DividerItemDecoration
 
 
-
-
-
 class BrowseFragment : Fragment() {
 
     private lateinit var binding: FragmentBrowseBinding
@@ -104,12 +101,14 @@ class BrowseFragment : Fragment() {
                 lifecycleScope.launch(context = Dispatchers.IO) {
                     val getActivities = async {
                         binding.viewmodel?.getActivitiesNearby(
-                            /*
-                    Triple(
-                        userLocation!!.latitude, userLocation!!.longitude, 0.5
-                    ),*/Triple(60.1700713, 24.9532164, 0.5),
-                            "en"
+
+                            Triple(
+                                userLocation!!.latitude, userLocation!!.longitude, 0.5
+                            ), "en"
                         )
+                        /*
+                        Triple(60.1700713, 24.9532164, 0.5), "en")
+                            */
                     }
                     getActivities.await()?.let {
                         activity?.runOnUiThread {
@@ -129,12 +128,13 @@ class BrowseFragment : Fragment() {
                 lifecycleScope.launch(context = Dispatchers.IO) {
                     val getPlaces = async {
                         binding.viewmodel?.getPlacesNearby(
-                            /*
-                    Triple(
-                        userLocation!!.latitude, userLocation!!.longitude, 0.5
-                    ),*/Triple(60.1700713, 24.9532164, 0.5),
-                            "en"
+                            Triple(
+                                userLocation!!.latitude, userLocation!!.longitude, 0.5
+                            ), "en"
                         )
+                        /*
+                        Triple(60.1700713, 24.9532164, 0.5), "en")
+                            */
                     }
                     getPlaces.await()?.let {
                         activity?.runOnUiThread {
@@ -154,12 +154,13 @@ class BrowseFragment : Fragment() {
                 lifecycleScope.launch(context = Dispatchers.IO) {
                     val getEvents = async {
                         binding.viewmodel?.getEventsNearby(
-                            /*
-                    Triple(
-                        userLocation!!.latitude, userLocation!!.longitude, 0.5
-                    ),*/Triple(60.1700713, 24.9532164, 0.5),
-                            "en"
+                            Triple(
+                                userLocation!!.latitude, userLocation!!.longitude, 0.5
+                            ), "en"
                         )
+                        /*
+                        Triple(60.1700713, 24.9532164, 0.5), "en")
+                            */
                     }
                     getEvents.await()?.let {
                         activity?.runOnUiThread {
@@ -235,7 +236,7 @@ class BrowseFragment : Fragment() {
 
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
-        if (response.isSuccessful) {
+        if (response.isSuccessful && response.body()?.data?.isNotEmpty() == true) {
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
                 adapterList.add(
@@ -259,12 +260,13 @@ class BrowseFragment : Fragment() {
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
-            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_LONG).show()
+            binding.progressBar.visibility = View.GONE
         }
     }
 
     private fun handlePlacesResponse(response: Response<HelsinkiPlaces>) {
-        if (response.isSuccessful) {
+        if (response.isSuccessful && response.body()?.data?.isNotEmpty() == true) {
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
                 adapterList.add(
@@ -288,12 +290,13 @@ class BrowseFragment : Fragment() {
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
-            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_LONG).show()
+            binding.progressBar.visibility = View.GONE
         }
     }
 
     private fun handleEventsResponse(response: Response<HelsinkiEvents>) {
-        if (response.isSuccessful) {
+        if (response.isSuccessful && response.body()?.data?.isNotEmpty() == true) {
             val adapterList = mutableListOf<SingleHelsinkiItem>()
             response.body()?.data?.forEach {
                 adapterList.add(
@@ -317,7 +320,8 @@ class BrowseFragment : Fragment() {
             binding.progressBar.visibility = View.GONE
         } else {
             // TODO Maybe create an alert dialog showing that the fetch failed
-            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Fail fetching items", Toast.LENGTH_LONG).show()
+            binding.progressBar.visibility = View.GONE
         }
     }
 

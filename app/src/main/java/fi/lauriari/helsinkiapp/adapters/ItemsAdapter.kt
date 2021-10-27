@@ -71,12 +71,14 @@ class ItemsAdapter(source: String) : RecyclerView.Adapter<ItemsAdapter.MyViewHol
 
             when (source) {
                 "browseFragment" -> {
-                    val action = BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
+                    val action =
+                        BrowseFragmentDirections.actionBrowseFragmentToSingleItemFragment(item)
                     holder.itemView.findNavController()
                         .navigate(action)
                 }
                 "searchFragment" -> {
-                    val action = SearchFragmentDirections.actionSearchFragmentToSingleItemFragment(item)
+                    val action =
+                        SearchFragmentDirections.actionSearchFragmentToSingleItemFragment(item)
                     holder.itemView.findNavController()
                         .navigate(action)
                 }
