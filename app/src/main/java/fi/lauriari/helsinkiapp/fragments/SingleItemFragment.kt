@@ -45,13 +45,9 @@ class SingleItemFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_single_item, container, false)
         initializeBinding(binding)
         initNavigation()
-
         setImages()
-
         setBasicInformation()
-
         setSpecificInformation()
-
         setOnclickListeners()
 
         return binding.root
@@ -82,15 +78,10 @@ class SingleItemFragment : Fragment() {
             }
         }
 
-        val list = favoriteViewModel.getFavoriteList()
-        list.filter {
+        favoriteViewModel.getFavoriteList().filter {
             it.itemApiId == args.helsinkiItem.id
         }.let {
-            if(it.isEmpty()) {
-                createInsertListener()
-            } else {
-                createDeleteListener(it)
-            }
+            if (it.isEmpty()) createInsertListener() else createDeleteListener(it[0])
         }
     }
 
@@ -129,7 +120,7 @@ class SingleItemFragment : Fragment() {
         }
     }
 
-    private fun createDeleteListener(isFavorited: List<Favorite>) {
+    private fun createDeleteListener(isFavorited: Favorite) {
         binding.addFavoritesFab.let { fab ->
             fab.isClickable = true
             fab.setImageDrawable(
@@ -143,7 +134,7 @@ class SingleItemFragment : Fragment() {
                 lifecycleScope.launch(Dispatchers.Main) {
 
                     val deleteFavorite = async {
-                        favoriteViewModel.deleteFavorite(isFavorited[0].id)
+                        favoriteViewModel.deleteFavorite(isFavorited.id)
                     }
                     deleteFavorite.join()
                     activity?.runOnUiThread {
