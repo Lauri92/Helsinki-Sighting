@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,22 +17,12 @@ import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentFavoritesBinding
-import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiActivity
-import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiEvent
-import fi.lauriari.helsinkiapp.datamodels.SingleHelsinkiPlace
-import fi.lauriari.helsinkiapp.entities.Favorite
 import fi.lauriari.helsinkiapp.viewmodels.FavoriteViewModel
-import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import retrofit2.Response
 
 
 class FavoritesFragment : Fragment() {
 
     private lateinit var binding: FragmentFavoritesBinding
-    private val apiViewModel: HelsinkiApiViewModel by viewModels()
     private val favoritesViewModel: FavoriteViewModel by viewModels()
     private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter("favoritesFragment") }
     private lateinit var layoutManager: LinearLayoutManager
@@ -47,222 +36,55 @@ class FavoritesFragment : Fragment() {
         initComponents()
         initNavigation()
         setButtonOnClickListeners()
+        setObservers()
         return view
     }
 
     private fun setButtonOnClickListeners() {
         binding.activitesBtn.setOnClickListener {
             binding.progressBar.visibility = View.VISIBLE
-            getFavorites("Activities")
+            binding.viewmodel?.getFavoriteActivities()
         }
 
         binding.placesBtn.setOnClickListener {
             binding.progressBar.visibility = View.VISIBLE
-            getFavorites("Places")
+            binding.viewmodel?.getFavoritePlaces()
         }
 
         binding.eventsBtn.setOnClickListener {
             binding.progressBar.visibility = View.VISIBLE
-            getFavorites("Events")
+            binding.viewmodel?.getFavoriteEvents()
         }
     }
 
-    private fun getFavorites(itemType: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            var favorites: List<Favorite>? = null
-            when (itemType) {
-                "Activities" -> {
-                    val getActivities = async {
-                        favorites =
-                            favoritesViewModel.getFavoriteList().toMutableList().filter {
-                                it.itemType == "MyHelsinki"
-                            }
-                    }
-                    getActivities.await()
-                    if (favorites?.isNotEmpty() == true) {
-                        setActivitiesListAndAdapter(favorites)
-                    } else {
-                        activity?.runOnUiThread {
-                            Toast.makeText(
-                                requireContext(),
-                                "No activities set as favorite!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            binding.progressBar.visibility = View.GONE
-                        }
-                    }
-                }
-                "Places" -> {
-                    val getPlaces = async {
-                        favorites =
-                            favoritesViewModel.getFavoriteList().toMutableList().filter {
-                                it.itemType == "Matko"
-                            }
-                    }
-                    getPlaces.await()
-                    if (favorites?.isNotEmpty() == true) {
-                        setPlacesListAndAdapter(favorites)
-                    } else {
-                        activity?.runOnUiThread {
-                            Toast.makeText(
-                                requireContext(),
-                                "No places set as favorite!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            binding.progressBar.visibility = View.GONE
-                        }
-                    }
-                }
-                "Events" -> {
-                    val getEvents = async {
-                        favorites =
-                            favoritesViewModel.getFavoriteList().toMutableList().filter {
-                                it.itemType == "LinkedEvents"
-                            }
-                    }
-                    getEvents.await()
-                    if (favorites?.isNotEmpty() == true) {
-                        setEventsListAndAdapter(favorites)
-                    } else {
-                        activity?.runOnUiThread {
-                            Toast.makeText(
-                                requireContext(),
-                                "No events set as favorite!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            binding.progressBar.visibility = View.GONE
-                        }
-                    }
-                }
-            }
-        }
+    private fun setObservers() {
+        binding.viewmodel?.favoriteActivities?.observe(viewLifecycleOwner, { favoriteActivities ->
+            handleLiveDataChange(favoriteActivities, "activities")
+        })
+
+        binding.viewmodel?.favoritePlaces?.observe(viewLifecycleOwner, { favoritePlaces ->
+            handleLiveDataChange(favoritePlaces, "places")
+        })
+
+        binding.viewmodel?.favoriteEvents?.observe(viewLifecycleOwner, { favoriteEvents ->
+            handleLiveDataChange(favoriteEvents, "events")
+        })
+
     }
 
-    private suspend fun setActivitiesListAndAdapter(favorites: List<Favorite>?) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val listForAdapter = mutableListOf<SingleHelsinkiItem>()
-            val populateList = async {
-                favorites?.forEach {
-                    var itemResponse: Response<SingleHelsinkiActivity>? = null
-                    val getSingleItem = async {
-                        itemResponse = apiViewModel.getActivityById(it.itemApiId, "en")
-                    }
-                    getSingleItem.await()
-                    val addSingleItem = async {
-                        if (itemResponse?.isSuccessful == true) {
-                            listForAdapter.add(
-                                SingleHelsinkiItem(
-                                    id = itemResponse?.body()?.id,
-                                    name = itemResponse?.body()?.name?.en,
-                                    infoUrl = itemResponse?.body()?.info_url,
-                                    latitude = itemResponse?.body()?.location?.lat,
-                                    longitude = itemResponse?.body()?.location?.lon,
-                                    streetAddress = itemResponse?.body()?.location?.address?.street_address,
-                                    locality = itemResponse?.body()?.location?.address?.locality,
-                                    description = itemResponse?.body()?.description?.body,
-                                    images = itemResponse?.body()?.description?.images,
-                                    tags = itemResponse?.body()?.tags,
-                                    whereWhenDuration = itemResponse?.body()?.where_when_duration,
-                                    itemType = itemResponse?.body()?.source_type!!.name
-                                )
-                            )
-                        }
-                    }
-                    addSingleItem.await()
-                }
-            }
-            populateList.await()
-            activity?.runOnUiThread {
-                itemsAdapter.setData(listForAdapter)
-                binding.progressBar.visibility = View.GONE
-            }
+    private fun handleLiveDataChange(favorites: MutableList<SingleHelsinkiItem>, type: String) {
+        if (favorites.isNotEmpty()) {
+            itemsAdapter.setData(favorites)
+        } else {
+            Toast.makeText(requireContext(), "No $type set as favorite!", Toast.LENGTH_SHORT)
+                .show()
         }
-    }
-
-    private suspend fun setPlacesListAndAdapter(favorites: List<Favorite>?) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val listForAdapter = mutableListOf<SingleHelsinkiItem>()
-            val populateList = async {
-                favorites?.forEach {
-                    var itemResponse: Response<SingleHelsinkiPlace>? = null
-                    val getSingleItem = async {
-                        itemResponse = apiViewModel.getPlaceById(it.itemApiId, "en")
-                    }
-                    getSingleItem.await()
-                    val addSingleItem = async {
-                        if (itemResponse?.isSuccessful == true) {
-                            listForAdapter.add(
-                                SingleHelsinkiItem(
-                                    id = itemResponse?.body()?.id,
-                                    name = itemResponse?.body()?.name?.en,
-                                    infoUrl = itemResponse?.body()?.info_url,
-                                    latitude = itemResponse?.body()?.location?.lat,
-                                    longitude = itemResponse?.body()?.location?.lon,
-                                    streetAddress = itemResponse?.body()?.location?.address?.street_address,
-                                    locality = itemResponse?.body()?.location?.address?.locality,
-                                    description = itemResponse?.body()?.description?.body,
-                                    images = itemResponse?.body()?.description?.images,
-                                    tags = itemResponse?.body()?.tags,
-                                    openingHours = itemResponse?.body()?.opening_hours,
-                                    itemType = itemResponse?.body()?.source_type!!.name
-                                )
-                            )
-                        }
-                    }
-                    addSingleItem.await()
-                }
-            }
-            populateList.await()
-            activity?.runOnUiThread {
-                itemsAdapter.setData(listForAdapter)
-                binding.progressBar.visibility = View.GONE
-            }
-        }
-    }
-
-    private suspend fun setEventsListAndAdapter(favorites: List<Favorite>?) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val listForAdapter = mutableListOf<SingleHelsinkiItem>()
-            val populateList = async {
-                favorites?.forEach {
-                    var itemResponse: Response<SingleHelsinkiEvent>? = null
-                    val getSingleItem = async {
-                        itemResponse = apiViewModel.getEventById(it.itemApiId, "en")
-                    }
-                    getSingleItem.await()
-                    val addSingleItem = async {
-                        if (itemResponse?.isSuccessful == true) {
-                            listForAdapter.add(
-                                SingleHelsinkiItem(
-                                    id = itemResponse?.body()?.id,
-                                    name = itemResponse?.body()?.name?.en,
-                                    infoUrl = itemResponse?.body()?.info_url,
-                                    latitude = itemResponse?.body()?.location?.lat,
-                                    longitude = itemResponse?.body()?.location?.lon,
-                                    streetAddress = itemResponse?.body()?.location?.address?.street_address,
-                                    locality = itemResponse?.body()?.location?.address?.locality,
-                                    description = itemResponse?.body()?.description?.body,
-                                    images = itemResponse?.body()?.description?.images,
-                                    tags = itemResponse?.body()?.tags,
-                                    eventDates = itemResponse?.body()?.event_dates,
-                                    itemType = itemResponse?.body()?.source_type!!.name
-                                )
-                            )
-                        }
-                    }
-                    addSingleItem.await()
-                }
-            }
-            populateList.await()
-            activity?.runOnUiThread {
-                itemsAdapter.setData(listForAdapter)
-                binding.progressBar.visibility = View.GONE
-            }
-        }
+        binding.progressBar.visibility = View.GONE
     }
 
     private fun initComponents() {
         binding.lifecycleOwner = viewLifecycleOwner
+        binding.viewmodel = favoritesViewModel
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
         binding.recyclerview.adapter = itemsAdapter

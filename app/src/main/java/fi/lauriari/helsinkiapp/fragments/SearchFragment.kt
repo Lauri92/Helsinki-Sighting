@@ -153,7 +153,7 @@ class SearchFragment : Fragment() {
                 itemsAdapter.setData(adapterList)
                 itemsFoundUIUpdate()
             } else {
-                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_LONG).show()
                 itemsNotFoundUIUpdate()
             }
         })
@@ -182,7 +182,7 @@ class SearchFragment : Fragment() {
                 itemsAdapter.setData(adapterList)
                 itemsFoundUIUpdate()
             } else {
-                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_LONG).show()
                 itemsNotFoundUIUpdate()
             }
         })
@@ -211,7 +211,7 @@ class SearchFragment : Fragment() {
                 itemsAdapter.setData(adapterList)
                 itemsFoundUIUpdate()
             } else {
-                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_LONG).show()
                 itemsNotFoundUIUpdate()
             }
         })
