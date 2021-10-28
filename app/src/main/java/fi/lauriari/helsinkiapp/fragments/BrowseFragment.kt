@@ -16,7 +16,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.location.*
@@ -26,21 +25,14 @@ import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentBrowseBinding
-import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiActivities
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import retrofit2.Response
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.slider.Slider
 import fi.lauriari.helsinkiapp.viewmodels.BrowseViewModel
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
 
 
 class BrowseFragment : Fragment() {
@@ -197,8 +189,6 @@ class BrowseFragment : Fragment() {
         }
     }
 
-
-    // FIXME: called when returning from singleItemFragment
     private fun setObservers() {
         binding.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
             Log.d("response", "in activities observer")
@@ -232,7 +222,6 @@ class BrowseFragment : Fragment() {
             }
         })
     }
-
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful && response.body()?.data?.isNotEmpty() == true) {

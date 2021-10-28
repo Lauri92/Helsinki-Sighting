@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -17,20 +16,17 @@ import fi.lauriari.helsinkiapp.R
 import fi.lauriari.helsinkiapp.adapters.ItemsAdapter
 import fi.lauriari.helsinkiapp.classes.SingleHelsinkiItem
 import fi.lauriari.helsinkiapp.databinding.FragmentSearchBinding
-import fi.lauriari.helsinkiapp.viewmodels.HelsinkiApiViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import android.app.Activity
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.core.view.forEachIndexed
 import androidx.recyclerview.widget.DividerItemDecoration
+import fi.lauriari.helsinkiapp.viewmodels.SearchViewModel
 
 class SearchFragment : Fragment() {
 
     lateinit var binding: FragmentSearchBinding
-    private val apiViewModel: HelsinkiApiViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
     private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter("searchFragment") }
     private lateinit var layoutManager: LinearLayoutManager
     private var spinnerValue = "Activities"
@@ -40,7 +36,6 @@ class SearchFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_search, container, false)
         val view = binding.root
         initializeComponents(binding)
@@ -48,7 +43,7 @@ class SearchFragment : Fragment() {
         initSearchViewQueryTextListener()
         setButtons()
         setSpinner()
-        binding.progressBar.visibility = View.GONE
+        setObservers()
         return view
     }
 
@@ -56,7 +51,18 @@ class SearchFragment : Fragment() {
         binding.searchview.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query ?: return false
-                getItems(query)
+                when (spinnerValue) {
+                    "Activities" -> {
+                        binding.viewmodel?.getActivities(query, "en")
+                    }
+                    "Places" -> {
+                        binding.viewmodel?.getPlaces(query, "en")
+                    }
+                    "Events" -> {
+                        binding.viewmodel?.getEvents(query, "en")
+                    }
+                }
+                hideKeyboard()
                 return true
             }
 
@@ -98,7 +104,8 @@ class SearchFragment : Fragment() {
 
     private fun initializeComponents(binding: FragmentSearchBinding) {
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.viewmodel = apiViewModel
+        binding.viewmodel = searchViewModel
+        binding.progressBar.visibility = View.GONE
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
         binding.recyclerview.adapter = itemsAdapter
@@ -121,21 +128,93 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun getItems(text: String) {
+    private fun setObservers() {
+        binding.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
+            val adapterList = mutableListOf<SingleHelsinkiItem>()
+            if (response.isSuccessful && response.body()!!.data.isNotEmpty()) {
+                response.body()?.data?.forEach { info ->
+                    adapterList.add(
+                        SingleHelsinkiItem(
+                            id = info.id,
+                            name = info.name.en,
+                            infoUrl = info.info_url,
+                            latitude = info.location.lat,
+                            longitude = info.location.lon,
+                            streetAddress = info.location.address.street_address,
+                            locality = info.location.address.locality,
+                            description = info.description.body,
+                            images = info.description.images,
+                            tags = info.tags,
+                            whereWhenDuration = info.where_when_duration,
+                            itemType = info.source_type.name
+                        )
+                    )
+                }
+                itemsAdapter.setData(adapterList)
+                itemsFoundUIUpdate()
+            } else {
+                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_SHORT).show()
+                itemsNotFoundUIUpdate()
+            }
+        })
 
-        hideKeyboard()
-        binding.progressBar.visibility = View.VISIBLE
-        when (spinnerValue) {
-            "Activities" -> {
-                handleActivityRequest(text)
+        binding.viewmodel?.placesResponse?.observe(viewLifecycleOwner, { response ->
+            val adapterList = mutableListOf<SingleHelsinkiItem>()
+            if (response.isSuccessful && response.body()!!.data.isNotEmpty()) {
+                response.body()?.data?.forEach { info ->
+                    adapterList.add(
+                        SingleHelsinkiItem(
+                            id = info.id,
+                            name = info.name.en,
+                            infoUrl = info.info_url,
+                            latitude = info.location.lat,
+                            longitude = info.location.lon,
+                            streetAddress = info.location.address.street_address,
+                            locality = info.location.address.locality,
+                            description = info.description.body,
+                            images = info.description.images,
+                            tags = info.tags,
+                            openingHours = info.opening_hours,
+                            itemType = info.source_type.name
+                        )
+                    )
+                }
+                itemsAdapter.setData(adapterList)
+                itemsFoundUIUpdate()
+            } else {
+                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_SHORT).show()
+                itemsNotFoundUIUpdate()
             }
-            "Places" -> {
-                handlePlacesRequest(text)
+        })
+
+        binding.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
+            val adapterList = mutableListOf<SingleHelsinkiItem>()
+            if (response.isSuccessful && response.body()!!.data.isNotEmpty()) {
+                response.body()?.data?.forEach { info ->
+                    adapterList.add(
+                        SingleHelsinkiItem(
+                            id = info.id,
+                            name = info.name.en,
+                            infoUrl = info.info_url,
+                            latitude = info.location.lat,
+                            longitude = info.location.lon,
+                            streetAddress = info.location.address.street_address,
+                            locality = info.location.address.locality,
+                            description = info.description.body,
+                            images = info.description.images,
+                            tags = info.tags,
+                            eventDates = info.event_dates,
+                            itemType = info.source_type.name
+                        )
+                    )
+                }
+                itemsAdapter.setData(adapterList)
+                itemsFoundUIUpdate()
+            } else {
+                Toast.makeText(requireContext(), "Nothing was found!", Toast.LENGTH_SHORT).show()
+                itemsNotFoundUIUpdate()
             }
-            "Events" -> {
-                handleEventsRequest(text)
-            }
-        }
+        })
     }
 
     private fun hideKeyboard() {
@@ -187,6 +266,7 @@ class SearchFragment : Fragment() {
             "history",
             "well-being",
         )
+
         when (spinnerValue) {
             "Activities" -> {
                 binding.buttonsContainer.forEachIndexed { index, view ->
@@ -206,159 +286,6 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun handleActivityRequest(text: String) {
-        val adapterList = mutableListOf<SingleHelsinkiItem>()
-        lifecycleScope.launch(Dispatchers.IO) {
-            val getItems = async {
-                apiViewModel.getActivities(text, "en")
-            }
-            getItems.await().let {
-                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                    val createList = async {
-                        it.body()?.data?.forEach { info ->
-                            adapterList.add(
-                                SingleHelsinkiItem(
-                                    id = info.id,
-                                    name = info.name.en,
-                                    infoUrl = info.info_url,
-                                    latitude = info.location.lat,
-                                    longitude = info.location.lon,
-                                    streetAddress = info.location.address.street_address,
-                                    locality = info.location.address.locality,
-                                    description = info.description.body,
-                                    images = info.description.images,
-                                    tags = info.tags,
-                                    whereWhenDuration = info.where_when_duration,
-                                    itemType = info.source_type.name
-                                )
-                            )
-                        }
-                    }
-                    createList.await()
-                    activity?.runOnUiThread {
-                        itemsAdapter.setData(adapterList)
-                        binding.progressBar.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.GONE
-                        binding.recyclerview.visibility = View.VISIBLE
-                    }
-                } else {
-                    activity?.runOnUiThread {
-                        Toast.makeText(
-                            requireContext(),
-                            "Nothing was found!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.progressBar.visibility = View.GONE
-                        binding.recyclerview.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.VISIBLE
-                    }
-                }
-            }
-        }
-    }
-
-    private fun handlePlacesRequest(text: String) {
-        val adapterList = mutableListOf<SingleHelsinkiItem>()
-        lifecycleScope.launch(Dispatchers.IO) {
-            val getItems = async {
-                apiViewModel.getPlaces(text, "en")
-            }
-            getItems.await().let {
-                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                    val createList = async {
-                        it.body()?.data?.forEach { info ->
-                            adapterList.add(
-                                SingleHelsinkiItem(
-                                    id = info.id,
-                                    name = info.name.en,
-                                    infoUrl = info.info_url,
-                                    latitude = info.location.lat,
-                                    longitude = info.location.lon,
-                                    streetAddress = info.location.address.street_address,
-                                    locality = info.location.address.locality,
-                                    description = info.description.body,
-                                    images = info.description.images,
-                                    tags = info.tags,
-                                    openingHours = info.opening_hours,
-                                    itemType = info.source_type.name
-                                )
-                            )
-                        }
-                    }
-                    createList.await()
-                    activity?.runOnUiThread {
-                        itemsAdapter.setData(adapterList)
-                        binding.progressBar.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.GONE
-                        binding.recyclerview.visibility = View.VISIBLE
-                    }
-                } else {
-                    activity?.runOnUiThread {
-                        Toast.makeText(
-                            requireContext(),
-                            "Nothing was found!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.progressBar.visibility = View.GONE
-                        binding.recyclerview.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.VISIBLE
-                    }
-                }
-            }
-        }
-    }
-
-    private fun handleEventsRequest(text: String) {
-        val adapterList = mutableListOf<SingleHelsinkiItem>()
-        lifecycleScope.launch(Dispatchers.IO) {
-            val getItems = async {
-                apiViewModel.getEvents(text, "en")
-            }
-            getItems.await().let {
-                if (it.isSuccessful && it.body()!!.data.isNotEmpty()) {
-                    val createList = async {
-                        it.body()?.data?.forEach { info ->
-                            adapterList.add(
-                                SingleHelsinkiItem(
-                                    id = info.id,
-                                    name = info.name.en,
-                                    infoUrl = info.info_url,
-                                    latitude = info.location.lat,
-                                    longitude = info.location.lon,
-                                    streetAddress = info.location.address.street_address,
-                                    locality = info.location.address.locality,
-                                    description = info.description.body,
-                                    images = info.description.images,
-                                    tags = info.tags,
-                                    eventDates = info.event_dates,
-                                    itemType = info.source_type.name
-                                )
-                            )
-                        }
-                    }
-                    createList.await()
-                    activity?.runOnUiThread {
-                        itemsAdapter.setData(adapterList)
-                        binding.progressBar.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.GONE
-                        binding.recyclerview.visibility = View.VISIBLE
-                    }
-                } else {
-                    activity?.runOnUiThread {
-                        Toast.makeText(
-                            requireContext(),
-                            "Nothing was found!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.progressBar.visibility = View.GONE
-                        binding.recyclerview.visibility = View.GONE
-                        binding.buttonsContainer.visibility = View.VISIBLE
-                    }
-                }
-            }
-        }
-    }
-
     private fun setSingleButtonTextAndListener(button: Button, textValue: String) {
         val textLowerCase = textValue.lowercase()
         val textCapitalize = textValue.replaceFirstChar { it.uppercase() }
@@ -367,22 +294,37 @@ class SearchFragment : Fragment() {
             "Activities" -> {
                 button.setOnClickListener {
                     binding.searchview.setQuery(textLowerCase, false)
-                    getItems(textLowerCase)
+                    binding.viewmodel?.getActivities(textLowerCase, "en")
+                    hideKeyboard()
                 }
             }
             "Places" -> {
                 button.setOnClickListener {
                     binding.searchview.setQuery(textCapitalize, false)
-                    getItems(textCapitalize)
+                    binding.viewmodel?.getPlaces(textCapitalize, "en")
+                    hideKeyboard()
                 }
             }
             "Events" -> {
                 button.setOnClickListener {
                     binding.searchview.setQuery(textLowerCase, false)
-                    getItems(textLowerCase)
+                    binding.viewmodel?.getEvents(textLowerCase, "en")
+                    hideKeyboard()
                 }
             }
         }
+    }
+
+    private fun itemsNotFoundUIUpdate() {
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerview.visibility = View.GONE
+        binding.buttonsContainer.visibility = View.VISIBLE
+    }
+
+    private fun itemsFoundUIUpdate() {
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerview.visibility = View.VISIBLE
+        binding.buttonsContainer.visibility = View.GONE
     }
 
     private fun setSpinner() {
