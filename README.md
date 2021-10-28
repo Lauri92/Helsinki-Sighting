@@ -67,11 +67,11 @@ and power management.
 ## Highlights of implementation
 
 Overall, development of this application provided an opportunity of strengthening some core basics
-about Android development in an environment which is a little bit more challenging. Areas improved
-include for example: management of overall project structure, usage of Coroutines with the Helsinki
-API and Room database mixed, Recyclerviews and updating data in adapters, using Retrofit with more
-complicated datamodels and how to apply scope functions into code more often.
+about Android development. Areas improved include for example: management of overall project
+structure, usage of Livedata, usage of Coroutines with the Helsinki API and Room database mixed,
+Recyclerviews and updating data in adapters, using Retrofit with more complicated datamodels and how
+to apply scope functions into code more often.
 
-Along the way several new things were learned too, such as how Bottomsheets work and how
-Livetemplates can make life much easier, for example when implementing an Adapter for a
-Recyclerview.
+Along the way several new things were learned too, such as how Bottomsheets work, how a simple
+navigation is setup using Osmdroid, and how Livetemplates can make life much easier, for example when
+implementing an Adapter for a Recyclerview.

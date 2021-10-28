@@ -53,13 +53,16 @@ class SearchFragment : Fragment() {
                 query ?: return false
                 when (spinnerValue) {
                     "Activities" -> {
-                        binding.viewmodel?.getActivities(query, "en")
+                        binding.searchview.setQuery(query.lowercase(), false)
+                        binding.viewmodel?.getActivities(query.lowercase(), "en")
                     }
                     "Places" -> {
-                        binding.viewmodel?.getPlaces(query, "en")
+                        binding.searchview.setQuery(query.lowercase(), false)
+                        binding.viewmodel?.getPlaces(query.replaceFirstChar { it.uppercase() }, "en")
                     }
                     "Events" -> {
-                        binding.viewmodel?.getEvents(query, "en")
+                        binding.searchview.setQuery(query.lowercase(), false)
+                        binding.viewmodel?.getEvents(query.lowercase(), "en")
                     }
                 }
                 hideKeyboard()

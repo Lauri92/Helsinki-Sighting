@@ -100,7 +100,6 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-
     fun getFavoritePlaces() {
         val listForAdapter = mutableListOf<SingleHelsinkiItem>()
         viewModelScope.launch {
@@ -147,7 +146,6 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
 
     fun getFavoriteEvents() {
         val listForAdapter = mutableListOf<SingleHelsinkiItem>()
