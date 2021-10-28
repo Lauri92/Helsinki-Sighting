@@ -8,15 +8,18 @@ import fi.lauriari.helsinkiapp.datamodels.HelsinkiEvents
 import fi.lauriari.helsinkiapp.datamodels.HelsinkiPlaces
 import fi.lauriari.helsinkiapp.repositories.HelsinkiApiRepository
 import kotlinx.coroutines.launch
+import org.osmdroid.util.GeoPoint
 import retrofit2.Response
 
 class BrowseViewModel : ViewModel() {
 
     private val helsinkiApiRepository = HelsinkiApiRepository()
 
-    private val activitiesResponse = MutableLiveData<Response<HelsinkiActivities>>()
-    private val placesResponse = MutableLiveData<Response<HelsinkiPlaces>>()
-    private val eventsResponse = MutableLiveData<Response<HelsinkiEvents>>()
+    val activitiesResponse = MutableLiveData<Response<HelsinkiActivities>>()
+    val placesResponse = MutableLiveData<Response<HelsinkiPlaces>>()
+    val eventsResponse = MutableLiveData<Response<HelsinkiEvents>>()
+    var userLocation = MutableLiveData<GeoPoint>()
+    var range = MutableLiveData<Double>()
 
     fun getActivitiesNearby(
         triple: Triple<Double, Double, Double>,

@@ -38,6 +38,7 @@ import retrofit2.Response
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.slider.Slider
+import fi.lauriari.helsinkiapp.viewmodels.BrowseViewModel
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 
@@ -46,15 +47,13 @@ class BrowseFragment : Fragment() {
 
     private lateinit var binding: FragmentBrowseBinding
     private lateinit var layoutManager: LinearLayoutManager
-    private val apiViewModel: HelsinkiApiViewModel by viewModels()
+    private val browseViewModel: BrowseViewModel by viewModels()
     private val itemsAdapter: ItemsAdapter by lazy { ItemsAdapter("browseFragment") }
     private lateinit var fusedLocationClient:
             FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
-    private var userLocation: GeoPoint? = null
-    private var range = 0.5
-
+    private var clickRequest = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -68,6 +67,7 @@ class BrowseFragment : Fragment() {
         initSetOnClickListeners()
         checkSelfPermissions()
         initBottomsheetAndSlider()
+        setObservers()
 
         return view
     }
@@ -77,11 +77,12 @@ class BrowseFragment : Fragment() {
             peekHeight = 60
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
+        binding.viewmodel?.range?.value = 0.5
         binding.slider.value = 500F
         binding.rangeTv.text = 500F.toInt().toString() + "m"
 
         binding.slider.addOnChangeListener { slider, value, fromUser ->
-            range = (slider.value / 1000).toDouble()
+            binding.viewmodel?.range?.value = (slider.value / 1000).toDouble()
             binding.rangeTv.text = "${slider.value.toInt()}m"
         }
     }
@@ -116,90 +117,52 @@ class BrowseFragment : Fragment() {
 
     private fun initSetOnClickListeners() {
         binding.activitiesButton.setOnClickListener {
-            if (userLocation != null) {
-                disableActivateButtons()
-                binding.progressBar.visibility = View.VISIBLE
-                lifecycleScope.launch(context = Dispatchers.IO) {
-                    val getActivities = async {
-                        binding.viewmodel?.getActivitiesNearby(
+            binding.viewmodel?.range?.value ?: return@setOnClickListener
+            binding.viewmodel?.userLocation?.value ?: return@setOnClickListener
 
-                            Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, range
-                            ), "en"
-                        )
-                        /*
-                        Triple(60.1700713, 24.9532164, 0.5), "en")
-                            */
-                    }
-                    getActivities.await()?.let {
-                        activity?.runOnUiThread {
-                            handleActivitiesResponse(it)
-                            layoutManager.scrollToPositionWithOffset(0, 0)
-                            disableActivateButtons()
-                        }
-                    }
-                }
-
-            }
+            clickRequest = true
+            binding.progressBar.visibility = View.VISIBLE
+            binding.viewmodel?.getActivitiesNearby(
+                Triple(
+                    binding.viewmodel?.userLocation?.value!!.latitude,
+                    binding.viewmodel?.userLocation?.value!!.longitude,
+                    binding.viewmodel?.range?.value!!
+                ), "en"
+            )
         }
         binding.placesButton.setOnClickListener {
-            if (userLocation != null) {
-                disableActivateButtons()
-                binding.progressBar.visibility = View.VISIBLE
-                lifecycleScope.launch(context = Dispatchers.IO) {
-                    val getPlaces = async {
-                        binding.viewmodel?.getPlacesNearby(
-                            Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, range
-                            ), "en"
-                        )
-                        /*
-                        Triple(60.1700713, 24.9532164, 0.5), "en")
-                            */
-                    }
-                    getPlaces.await()?.let {
-                        activity?.runOnUiThread {
-                            handlePlacesResponse(it)
-                            layoutManager.scrollToPositionWithOffset(0, 0)
-                            disableActivateButtons()
-                        }
-                    }
-                }
+            binding.viewmodel?.range?.value ?: return@setOnClickListener
+            binding.viewmodel?.userLocation?.value ?: return@setOnClickListener
 
-            }
+            clickRequest = true
+            binding.progressBar.visibility = View.VISIBLE
+            binding.viewmodel?.getPlacesNearby(
+                Triple(
+                    binding.viewmodel?.userLocation?.value!!.latitude,
+                    binding.viewmodel?.userLocation?.value!!.longitude,
+                    binding.viewmodel?.range?.value!!
+                ), "en"
+            )
         }
         binding.eventsButton.setOnClickListener {
-            if (userLocation != null) {
-                disableActivateButtons()
-                binding.progressBar.visibility = View.VISIBLE
-                lifecycleScope.launch(context = Dispatchers.IO) {
-                    val getEvents = async {
-                        binding.viewmodel?.getEventsNearby(
-                            Triple(
-                                userLocation!!.latitude, userLocation!!.longitude, range
-                            ), "en"
-                        )
-                        /*
-                        Triple(60.1700713, 24.9532164, 0.5), "en")
-                            */
-                    }
-                    getEvents.await()?.let {
-                        activity?.runOnUiThread {
-                            handleEventsResponse(it)
-                            layoutManager.scrollToPositionWithOffset(0, 0)
-                            disableActivateButtons()
-                        }
-                    }
-                }
+            binding.viewmodel?.range?.value ?: return@setOnClickListener
+            binding.viewmodel?.userLocation?.value ?: return@setOnClickListener
 
-            }
+            clickRequest = true
+            binding.progressBar.visibility = View.VISIBLE
+            binding.viewmodel?.getEventsNearby(
+                Triple(
+                    binding.viewmodel?.userLocation?.value!!.latitude,
+                    binding.viewmodel?.userLocation?.value!!.longitude,
+                    binding.viewmodel?.range?.value!!
+                ), "en"
+            )
         }
-
     }
 
     private fun initializeViewModelRepositoryBinding(binding: FragmentBrowseBinding) {
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.viewmodel = apiViewModel
+        binding.viewmodel = browseViewModel
         layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerview.layoutManager = layoutManager
         binding.recyclerview.adapter = itemsAdapter
@@ -227,33 +190,49 @@ class BrowseFragment : Fragment() {
                 for (location in locationResult.locations) {
                     val geoPoint = GeoPoint(location.latitude, location.longitude)
                     Log.d("location", geoPoint.toDoubleString())
-                    userLocation = GeoPoint(location.latitude, location.longitude)
+                    binding.viewmodel?.userLocation?.value =
+                        GeoPoint(location.latitude, location.longitude)
                 }
             }
         }
     }
 
-    /*
+
     // FIXME: called when returning from singleItemFragment
     private fun setObservers() {
-        binding?.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
-            Log.d("observers", "activitiesResponse observer")
-            handleActivitiesResponse(response)
-            Log.d("observers", "activitiesResponse value :${response.body()!!.meta}")
+        binding.viewmodel?.activitiesResponse?.observe(viewLifecycleOwner, { response ->
+            Log.d("response", "in activities observer")
+            if (clickRequest) {
+                disableActivateButtons()
+                handleActivitiesResponse(response)
+                layoutManager.scrollToPositionWithOffset(0, 0)
+                disableActivateButtons()
+                clickRequest = false
+            }
         })
-        binding?.viewmodel?.placesResponse?.observe(viewLifecycleOwner, { response ->
-            Log.d("observers", "placesResponse observer")
-            handlePlacesResponse(response)
-            Log.d("observers", "placesResponse value :${response.body()!!.meta}")
+
+        binding.viewmodel?.placesResponse?.observe(viewLifecycleOwner, { response ->
+            Log.d("response", "in places observer")
+            if (clickRequest) {
+                disableActivateButtons()
+                handlePlacesResponse(response)
+                layoutManager.scrollToPositionWithOffset(0, 0)
+                disableActivateButtons()
+                clickRequest = false
+            }
         })
-        binding?.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
-            Log.d("observers", "eventsResponse observer")
-            handleEventsResponse(response)
-            Log.d("observers", "eventsResponse value :${response.body()!!.meta}")
+        binding.viewmodel?.eventsResponse?.observe(viewLifecycleOwner, { response ->
+            Log.d("response", "in events observer")
+            if (clickRequest) {
+                disableActivateButtons()
+                handleEventsResponse(response)
+                layoutManager.scrollToPositionWithOffset(0, 0)
+                disableActivateButtons()
+                clickRequest = false
+            }
         })
     }
 
-     */
 
     private fun handleActivitiesResponse(response: Response<HelsinkiActivities>) {
         if (response.isSuccessful && response.body()?.data?.isNotEmpty() == true) {
@@ -383,7 +362,8 @@ class BrowseFragment : Fragment() {
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
                         Log.d("locations", "Got last known location.")
-                        userLocation = GeoPoint(location.latitude, location.longitude)
+                        binding.viewmodel?.userLocation?.value =
+                            GeoPoint(location.latitude, location.longitude)
                     }
                 }
             fusedLocationClient.requestLocationUpdates(
