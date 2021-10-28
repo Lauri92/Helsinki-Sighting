@@ -64,14 +64,14 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
             }
             favorites.await()
             if (favoriteList?.isNotEmpty() == true) {
-                favoriteList?.forEach {
-                    var itemResponse: Response<SingleHelsinkiActivity>? = null
-                    val getSingleItem = async {
-                        itemResponse = helsinkiApiRepository.getActivityById(it.itemApiId, "en")
-                    }
-                    getSingleItem.await()
-                    if (itemResponse?.isSuccessful == true) {
-                        val addSingleItem = async {
+                val populateList = async {
+                    favoriteList?.forEach {
+                        var itemResponse: Response<SingleHelsinkiActivity>? = null
+                        val getSingleItem = async {
+                            itemResponse = helsinkiApiRepository.getActivityById(it.itemApiId, "en")
+                        }
+                        getSingleItem.await()
+                        if (itemResponse?.isSuccessful == true) {
                             listForAdapter.add(
                                 SingleHelsinkiItem(
                                     id = itemResponse?.body()?.id,
@@ -89,13 +89,13 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
                                 )
                             )
                         }
-                        addSingleItem.await()
-                        favoriteActivities.value = listForAdapter
                     }
                 }
+                populateList.await()
+                favoritePlaces.value = listForAdapter
             } else {
-                // list is empty
-                favoriteActivities.value = listForAdapter
+                // empty list
+                favoritePlaces.value = listForAdapter
             }
         }
     }
@@ -111,37 +111,37 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
             }
             favorites.await()
             if (favoriteList?.isNotEmpty() == true) {
-                favoriteList?.forEach {
-                    var itemResponse: Response<SingleHelsinkiPlace>? = null
-                    val getSingleItem = async {
-                        itemResponse = helsinkiApiRepository.getPlaceById(it.itemApiId, "en")
-                    }
-                    getSingleItem.await()
-                    if (itemResponse?.isSuccessful == true) {
-                        val addSingleItem = async {
-                            listForAdapter.add(
-                                SingleHelsinkiItem(
-                                    id = itemResponse?.body()?.id,
-                                    name = itemResponse?.body()?.name?.en,
-                                    infoUrl = itemResponse?.body()?.info_url,
-                                    latitude = itemResponse?.body()?.location?.lat,
-                                    longitude = itemResponse?.body()?.location?.lon,
-                                    streetAddress = itemResponse?.body()?.location?.address?.street_address,
-                                    locality = itemResponse?.body()?.location?.address?.locality,
-                                    description = itemResponse?.body()?.description?.body,
-                                    images = itemResponse?.body()?.description?.images,
-                                    tags = itemResponse?.body()?.tags,
-                                    openingHours = itemResponse?.body()?.opening_hours,
-                                    itemType = itemResponse?.body()?.source_type!!.name
-                                )
-                            )
+                val populateList = async {
+                    favoriteList?.forEach {
+                        var itemResponse: Response<SingleHelsinkiPlace>? = null
+                        val getSingleItem = async {
+                            itemResponse = helsinkiApiRepository.getPlaceById(it.itemApiId, "en")
                         }
-                        addSingleItem.await()
-                        favoritePlaces.value = listForAdapter
+                        getSingleItem.await()
+                            if (itemResponse?.isSuccessful == true) {
+                                listForAdapter.add(
+                                    SingleHelsinkiItem(
+                                        id = itemResponse?.body()?.id,
+                                        name = itemResponse?.body()?.name?.en,
+                                        infoUrl = itemResponse?.body()?.info_url,
+                                        latitude = itemResponse?.body()?.location?.lat,
+                                        longitude = itemResponse?.body()?.location?.lon,
+                                        streetAddress = itemResponse?.body()?.location?.address?.street_address,
+                                        locality = itemResponse?.body()?.location?.address?.locality,
+                                        description = itemResponse?.body()?.description?.body,
+                                        images = itemResponse?.body()?.description?.images,
+                                        tags = itemResponse?.body()?.tags,
+                                        openingHours = itemResponse?.body()?.opening_hours,
+                                        itemType = itemResponse?.body()?.source_type!!.name
+                                    )
+                                )
+                        }
                     }
                 }
+                populateList.await()
+                favoritePlaces.value = listForAdapter
             } else {
-                // list is empty
+                // empty list
                 favoritePlaces.value = listForAdapter
             }
         }
@@ -158,14 +158,14 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
             }
             favorites.await()
             if (favoriteList?.isNotEmpty() == true) {
-                favoriteList?.forEach {
-                    var itemResponse: Response<SingleHelsinkiEvent>? = null
-                    val getSingleItem = async {
-                        itemResponse = helsinkiApiRepository.getEventById(it.itemApiId, "en")
-                    }
-                    getSingleItem.await()
-                    if (itemResponse?.isSuccessful == true) {
-                        val addSingleItem = async {
+                val populateList = async {
+                    favoriteList?.forEach {
+                        var itemResponse: Response<SingleHelsinkiEvent>? = null
+                        val getSingleItem = async {
+                            itemResponse = helsinkiApiRepository.getEventById(it.itemApiId, "en")
+                        }
+                        getSingleItem.await()
+                        if (itemResponse?.isSuccessful == true) {
                             listForAdapter.add(
                                 SingleHelsinkiItem(
                                     id = itemResponse?.body()?.id,
@@ -183,12 +183,11 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
                                 )
                             )
                         }
-                        addSingleItem.await()
-                        favoriteEvents.value = listForAdapter
                     }
                 }
+                populateList.await()
+                favoriteEvents.value = listForAdapter
             } else {
-                // list is empty
                 favoriteEvents.value = listForAdapter
             }
         }
