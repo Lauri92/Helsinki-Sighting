@@ -32,10 +32,11 @@
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
-            android:background="#BD2719"
-            app:itemTextColor="@color/black"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#BD2719"
+            app:itemIconTint="@drawable/tab_color"
+            app:itemTextColor="@drawable/tab_color"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
